@@ -49,3 +49,5 @@ class Joint():
             [0,           sin(alpha),              cos(alpha),            d           ],
             [0,           0,                       0,                     1           ]
         ])
+    
+

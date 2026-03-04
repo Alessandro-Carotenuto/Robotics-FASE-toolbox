@@ -158,3 +158,12 @@ class Robot():
         for joint in q:
             G.append(diff(U,joint))
         return simplify(Matrix(G))
+    
+    def setDHParameter(self,param: str,index: int,value: int):
+        allowed = {"a", "alpha", "d", "theta"}
+        if param not in allowed:
+            raise ValueError(f"{param} non è un parametro DH valido")
+        
+        joint=self.jointlist[index]
+        joint.setattr(joint,param,value)
+        
