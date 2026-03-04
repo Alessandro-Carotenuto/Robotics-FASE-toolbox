@@ -1,5 +1,6 @@
 from joints import JointTypes, Joint
 from utils import process_joint_string, validate_joint_string
+from sympy import Matrix
 
 class Robot():
 
@@ -20,5 +21,14 @@ class Robot():
                 print("Error occurred while constructing joints for the robot")
 
         pass
+
+    def ForwardKinematics(self, upto=None):
+        if upto==None:
+            upto=self.n_joints
+
+        FK=Matrix.eye(4)
+        for i in range(0, upto):
+            FK=FK*self.jointlist[i].getDHTransform()
+        return FK
 
 
