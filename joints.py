@@ -21,8 +21,22 @@ class Joint():
             self.d=symbols(f'd_{self.idx}')
             self.theta=symbols(f'q_{self.idx}')
             self.q=self.theta
+        
+        self.q_dot=symbols(f"q_dot_{self.idx}")
 
-        self.distance_CoM=symbols(f'dc_{self.idx}')
+        self.distance_CoM=symbols(f'dc_{self.idx}')             #CoM distance along the joint axis, TO-DO, improve that
+
+        self.ang_velocity = None #needs to be instantiated
+        self.lin_velocity = None #needs to be instantiated
+        self.m = symbols(f'm_{self.idx}')
+
+        Ixx, Ixy, Ixz, Iyy, Iyz, Izz = symbols(f'Ixx_{self.idx} Ixy_{self.idx} Ixz_{self.idx} Iyy_{self.idx} Iyz_{self.idx} Izz_{self.idx}')
+        
+        self.I = Matrix([
+            [Ixx, Ixy, Ixz],
+            [Ixy, Iyy, Iyz],
+            [Ixz, Iyz, Izz]
+        ])
 
     def getDHTransform(self):
         a=self.a

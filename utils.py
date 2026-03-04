@@ -17,7 +17,6 @@ def validate_joint_string(s: str) -> bool:
     
     return True
 
-
 def process_joint_string(s: str) -> str:
     result = ""
     i = 0
