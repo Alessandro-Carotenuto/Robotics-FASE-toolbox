@@ -1,6 +1,7 @@
 from joints import JointTypes, Joint
 from utils import process_joint_string, validate_joint_string
 from sympy import Matrix, simplify, Rational, diff, symbols
+from typing import List
 
 class Robot():
 
@@ -159,11 +160,20 @@ class Robot():
             G.append(diff(U,joint))
         return simplify(Matrix(G))
     
-    def setDHParameter(self,param: str,index: int,value: int):
+    def setDHParameters(self,param_list: List,index_list: List,value_list :List):
+        #VALIDATE
         allowed = {"a", "alpha", "d", "theta"}
-        if param not in allowed:
-            raise ValueError(f"{param} non è un parametro DH valido")
+        for e in param_list:
+            if e not in allowed:
+                raise ValueError(f"{e} non è un parametro DH valido")
+
+        for i in range(0, len(param_list)):
+            joint=self.jointlist[index_list[i]]
+            setattr(joint,param_list[i],value_list[i])
         
-        joint=self.jointlist[index]
-        joint.setattr(joint,param,value)
-        
+        self.FKlist = self.ForwardKinematics()
+        self.T      = self.getKineticEnergy()
+        self.M      = self.getInertiaMatrix()
+        self.c      = self.getCoriolisMatrix()
+        self.G      = self.getGravityVector()
+    
