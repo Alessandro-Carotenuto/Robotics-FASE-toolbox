@@ -1,6 +1,6 @@
 from joints import JointTypes, Joint
 from utils import process_joint_string, validate_joint_string
-from sympy import Matrix, simplify, Rational, diff
+from sympy import Matrix, simplify, Rational, diff, symbols
 
 class Robot():
 
@@ -23,7 +23,8 @@ class Robot():
         self.FKlist=self.ForwardKinematics()
         self.T=self.getKineticEnergy()
         self.M=self.getInertiaMatrix()
-        self.c=0
+        self.c=self.getCoriolisMatrix()
+        self.G=self.getGravityVector()
 
     def ForwardKinematics(self, upto=None):
         if upto==None:
@@ -88,7 +89,7 @@ class Robot():
                 print("Error occurred while calculating the Kinetic Energy trough Moving Frames Algorithm)")
             
             Rot=self.jointlist[i].getDHTransform()[:3,:3] 
-            qdot=self.jointlist[i].qdot
+            qdot=self.jointlist[i].q_dot
             
             if i==0:
                 omega=Matrix([0, 0, 0])
@@ -140,3 +141,20 @@ class Robot():
         
         return Matrix.vstack(*Coriolis)
 
+    def getGravityVector(self):
+        q = [self.jointlist[i].q for i in range(self.n_joints)]
+        U=[]
+        G=[]
+        g=symbols("g")
+        base_gravity_vector=Matrix([0,0,-g])
+        for i in range(0, self.n_joints):
+            pos_joint_i=self.FKlist[i][:3,3]
+            rot_joint_i=self.FKlist[i][:3,:3]
+            dc_vector=Matrix([0,0,self.jointlist[i].distance_CoM])
+            pos_com_i=pos_joint_i+rot_joint_i*dc_vector
+            U.append(-self.jointlist[i].m*base_gravity_vector.T*pos_com_i)
+        U=sum(U)
+        
+        for joint in q:
+            G.append(diff(U,joint))
+        return simplify(Matrix(G))
