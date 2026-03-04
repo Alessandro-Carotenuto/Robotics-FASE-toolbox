@@ -1,6 +1,7 @@
 def validate_joint_string(s: str) -> bool:
-    assert len(s) > 0, "Joint string cannot be empty"
     assert isinstance(s, str), "Joint string must be a string"
+    assert len(s) > 0, "Joint string cannot be empty"
+
     
     i = 0
     while i < len(s):
