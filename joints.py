@@ -22,6 +22,8 @@ class Joint():
             self.theta=symbols(f'q_{self.idx}')
             self.q=self.theta
 
+        self.distance_CoM=symbols(f'dc_{self.idx}')
+
     def getDHTransform(self):
         a=self.a
         alpha=self.alpha
