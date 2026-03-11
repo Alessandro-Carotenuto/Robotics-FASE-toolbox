@@ -32,4 +32,3 @@ def process_joint_string(s: str) -> str:
             result += s[i]
             i += 1
     return result
-

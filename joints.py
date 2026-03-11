@@ -1,13 +1,18 @@
 from enum import Enum
 from sympy import symbols, cos, sin, Matrix
 
+class LinkBodyAssumptions(Enum):
+    GENERAL=1
+    CYLIDNRIC=2
+    POINT_MASS=3
+
 class JointTypes(Enum):
     PRISMATIC=1
     REVOLUTE=2
 
 class Joint():
 
-    def __init__(self, type: JointTypes, index: int):
+    def __init__(self, type: JointTypes, index: int, assumption: LinkBodyAssumptions=LinkBodyAssumptions.GENERAL):
         self.type=type
         self.idx=index
 
@@ -24,7 +29,7 @@ class Joint():
         
         self.q_dot=symbols(f"q_dot_{self.idx}")
 
-        self.distance_CoM=symbols(f'dc_{self.idx}')             #CoM distance along the joint axis, TO-DO, improve that
+        self.distance_CoM=symbols(f'dc_{self.idx}')             #CoM distance along the joint axis, TO-DO, improve that, CYLINDRICAL BODY ASSUMPTION?
 
         self.ang_velocity = None #needs to be instantiated
         self.lin_velocity = None #needs to be instantiated
@@ -32,6 +37,15 @@ class Joint():
 
         Ixx, Ixy, Ixz, Iyy, Iyz, Izz = symbols(f'Ixx_{self.idx} Ixy_{self.idx} Ixz_{self.idx} Iyy_{self.idx} Iyz_{self.idx} Izz_{self.idx}')
         
+        match assumption:
+            case LinkBodyAssumptions.GENERAL:
+                pass
+            case LinkBodyAssumptions.CYLIDNRIC:
+                Ixy = Ixz = Iyz = 0
+            case LinkBodyAssumptions.POINT_MASS:
+                Ixx = Ixy = Ixz = Iyy = Iyz = Izz = 0
+        
+
         self.I = Matrix([
             [Ixx, Ixy, Ixz],
             [Ixy, Iyy, Iyz],
