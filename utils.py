@@ -1,3 +1,5 @@
+from sympy import cos, sin, Matrix
+
 def validate_joint_string(s: str) -> bool:
     assert isinstance(s, str), "Joint string must be a string"
     assert len(s) > 0, "Joint string cannot be empty"
@@ -32,3 +34,39 @@ def process_joint_string(s: str) -> str:
             result += s[i]
             i += 1
     return result
+
+
+def rot_x(theta):
+    """Rotation matrix around the X axis."""
+    return Matrix([
+        [1, 0,          0         ],
+        [0, cos(theta), -sin(theta)],
+        [0, sin(theta), cos(theta) ]
+    ])
+
+def rot_y(theta):
+    """Rotation matrix around the Y axis."""
+    return Matrix([
+        [cos(theta),  0, sin(theta)],
+        [0,           1, 0         ],
+        [-sin(theta), 0, cos(theta)]
+    ])
+
+def rot_z(theta):
+    """Rotation matrix around the Z axis."""
+    return Matrix([
+        [cos(theta), -sin(theta), 0],
+        [sin(theta), cos(theta),  0],
+        [0,          0,           1]
+    ])
+
+def skew(v):
+    """
+    Returns the skew-symmetric matrix S such that skew(v) * w = v x w.
+    Input v can be a list, tuple, or sympy Matrix with 3 elements.
+    """
+    return Matrix([
+        [ 0,    -v[2],  v[1]],
+        [ v[2],  0,    -v[0]],
+        [-v[1],  v[0],  0   ]
+    ])

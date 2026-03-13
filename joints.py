@@ -3,8 +3,12 @@ from sympy import symbols, cos, sin, Matrix
 
 class LinkBodyAssumptions(Enum):
     GENERAL=1
-    CYLIDNRIC=2
+    CYLINDRIC=2
     POINT_MASS=3
+    DIAGONAL=4
+    SPHERE=5
+    THIN_ROD=6
+    PLANAR=7
 
 class JointTypes(Enum):
     PRISMATIC=1
@@ -40,8 +44,21 @@ class Joint():
         match assumption:
             case LinkBodyAssumptions.GENERAL:
                 pass
-            case LinkBodyAssumptions.CYLIDNRIC:
+            case LinkBodyAssumptions.DIAGONAL:
                 Ixy = Ixz = Iyz = 0
+            case LinkBodyAssumptions.CYLINDRIC:
+                Ixy = Ixz = Iyz = 0
+                Iyy = Ixx
+            case LinkBodyAssumptions.SPHERE:
+                Ixy = Ixz = Iyz = 0
+                Iyy = Izz = Ixx
+            case LinkBodyAssumptions.THIN_ROD:
+                Ixy = Ixz = Iyz = 0
+                Iyy = Ixx
+                Izz = 0
+            case LinkBodyAssumptions.PLANAR:
+                Ixy = Ixz = Iyz = 0
+                Ixx = Iyy = 0
             case LinkBodyAssumptions.POINT_MASS:
                 Ixx = Ixy = Ixz = Iyy = Iyz = Izz = 0
         

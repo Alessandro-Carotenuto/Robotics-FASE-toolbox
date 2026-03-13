@@ -8,6 +8,23 @@ class Manipulator(Robot):
     #TO DO : check len assumption if matches joint sequence after processing
     #TO DO : Expand the inheritance of Robot and constructor
     #TO DO : Implement Verbose debugs for calculations, maybe as a list, or maybe into setDHParameters
+    #TO DO : Implement Dynamic Parameters for the whole system obtaining
+    #   using expand() then make_args (add or not), using as_indipendent(params) (params to define or detect)
+    #   then a loop where FOR THE SAME TERM we add term that multiply same kinematic portion
+    #TO DO : Implement obtain inertia matrix without derivation?
+    #TO DO : Singularities + COnstraints both for Reachable Workspace and for Dextrous Workspace
+    #TO DO : Implement Compatibility with URDF file types
+    #TO DO : Implement Inverse Kinematics both Numerical (Easy) but  mostly analytical (find a way)
+
+    #TO DO : Trajectory Planning for manipulator
+
+    #TO DO : Kinematic Control
+    #TO DO : Dynamic Control
+    #TO DO : Adaptive Control
+
+    #TO DO : Formally check Coriolis and Matrices with textbooks
+
+
     def __init__(self, joint_sequence: str, assumptions: Union[LinkBodyAssumptions, List[LinkBodyAssumptions]] = LinkBodyAssumptions.GENERAL, verbose: bool = False):
         super().__init__(verbose_calc=verbose) 
         if not validate_joint_string(joint_sequence):
@@ -37,6 +54,7 @@ class Manipulator(Robot):
         self.M=self.getInertiaMatrix() #NOT SIMPLIFIED
         self.c=self.getCoriolisMatrix()
         self.G=self.getGravityVector() #NOT SIMPLIFIED
+        self.J = self.getGeometricJacobian()
 
     def ForwardKinematics(self, upto=None):
         if upto==None:
@@ -78,10 +96,10 @@ class Manipulator(Robot):
             else:
                 print("Error occurred while calculating the Jacobian Matrix (Geometric)")
 
-        Jv = Matrix.hstack(*Traslational_Jacobian)
-        Jw = Matrix.hstack(*Rotational_Jacobian)
+        Jv = simplify(Matrix.hstack(*Traslational_Jacobian))
+        Jw = simplify(Matrix.hstack(*Rotational_Jacobian))
         Jacobian = Jv.col_join(Jw) 
-        return simplify(Jacobian)
+        return Jacobian, Jv, Jw #RETURNS FULL JACOBIAN, LINEAR, ANGULAR
     
     def getKineticEnergy(self):
         print("Calculating Kinetic Energy with Moving Frames: ",end="")
@@ -196,4 +214,15 @@ class Manipulator(Robot):
         self.M      = self.getInertiaMatrix()
         self.c      = self.getCoriolisMatrix()
         self.G      = self.getGravityVector()
+        self.J      = self.getGeometricJacobian()
     
+    def getDynamicCoefficients(self): #WIP
+        L=[]
+        return L
+
+    def getReachableWorkspace(self):
+        Jv=self.J[:3,:]
+        pass
+    
+    def getDextrousWorkspace(self):
+        pass

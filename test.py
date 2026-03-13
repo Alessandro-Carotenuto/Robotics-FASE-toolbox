@@ -1,50 +1,38 @@
-import sys
-from joints import LinkBodyAssumptions
-from manipulator import Manipulator
-from sympy import *
-import matplotlib.pyplot as plt
+import sympy as sp
 
-def show_matrix_latex(M, title=""):
-    n = M.shape[0]
-    fig, axes = plt.subplots(n, n, figsize=(28, 8))
-    for i in range(n):
-        for j in range(n):
-            axes[i,j].axis('off')
-            expr_str = f"${latex(M[i,j])}$"
-            fontsize = max(5, 10 - len(expr_str) // 50)
-            axes[i,j].text(0.5, 0.5, expr_str,
-                           fontsize=fontsize, ha='center', va='center',
-                           transform=axes[i,j].transAxes)
-    plt.suptitle(title)
-    plt.tight_layout()
-    plt.show()
+# 1. Setup symbols
+q1, q2 = sp.symbols('q1 q2')
+m1, m2, l1, l2, I1, I2 = sp.symbols('m1 m2 l1 l2 I1 I2')
+params = (m1, m2, l1, l2, I1, I2) # Define what counts as a "parameter"
 
-a2, a3 = symbols('a_2 a_3', positive=True)
-rob = Manipulator("3R", LinkBodyAssumptions.CYLIDNRIC)
-rob.setDHParameters(
-    param_list  = ['alpha', 'a', 'd',
-                   'alpha', 'a', 'd',
-                   'alpha', 'a', 'd'],
-    index_list  = [0,  0,  0,
-                   1,  1,  1,
-                   2,  2,  2],
-    value_list  = [pi/2, 0,  0,
-                     0, a2,  0,
-                     0, a3,  0]
-)
+# 2. A complex M[1,1] with MULTIPLE functions
+# This has a constant part, a cos part, a sin part, and a cos^2 part
+M11 = (I1 + m2*l1**2) + (m2*l1*l2)*sp.cos(q2) + (m2*l2**2)*sp.sin(q1) + (m1*l1)*sp.cos(q2)**2
+M11 = M11.expand()
 
-n = rob.n_joints
-M_simplified = Matrix.zeros(n)
-for i in range(n):
-    for j in range(n):
-        M_simplified[i, j] = trigsimp(simplify(rob.M[i, j]))
+print("--- Complex Expression ---")
+sp.pprint(M11)
 
-show_matrix_latex(M_simplified, "M(q)")
+# 3. THE LOOP: Extracting everything automatically
+# We use sp.Add.make_args to break the expression at every "+"
+results = {}
 
-print("\n\n========== M(q)*q̈ ==========")
-q1d, q2d, q3d = symbols('q_ddot_1 q_ddot_2 q_ddot_3')
-qdd = Matrix([q1d, q2d, q3d])
-Mqdd = trigsimp(simplify(rob.M * qdd))
-for i, row in enumerate(Mqdd):
-    print(f"\n  [M*q̈]_{i+1} =")
-    pprint(trigsimp(expand(row)))
+for term in sp.Add.make_args(M11):
+    # For each term (like m2*l1*l2*cos(q2)):
+    # .as_independent(*params) splits it into (KinematicPart, ParameterPart)
+    # Note: we use *params to tell it ALL these are the constant symbols
+    kinematic_part, parameter_part = term.as_independent(*params)
+    
+    # We group them in a dictionary
+    # If the kinematic part is already in there, we add to it (for base parameters)
+    if kinematic_part in results:
+        results[kinematic_part] += parameter_part
+    else:
+        results[kinematic_part] = parameter_part
+
+# 4. Show the "Linearization"
+print("\n--- Extracted Linear Mapping ---")
+for f_q, rho in results.items():
+    print(f"Function f(q): {f_q}")
+    print(f"Parameter rho: {rho}")
+    print("-" * 20)
