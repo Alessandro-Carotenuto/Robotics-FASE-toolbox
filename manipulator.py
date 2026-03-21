@@ -24,9 +24,13 @@ class Manipulator(Robot):
 
     #TO DO : Formally check Coriolis and Matrices with textbooks
 
+    #TO DO : Readibility of outoputs
+    #TO DO : Efficiency: Propagated Jacobian Method, Screw Theory of Lie algebra
+    #TO DO : Symbolic Recursive Newthon-Euler
+
 
     def __init__(self, joint_sequence: str, assumptions: Union[LinkBodyAssumptions, List[LinkBodyAssumptions]] = LinkBodyAssumptions.GENERAL, verbose: bool = False):
-        super().__init__(verbose_calc=verbose) 
+        super().__init__(verbose_calc=verbose)  
         if not validate_joint_string(joint_sequence):
             raise ValueError(f"Invalid joint string: {joint_sequence}")
         
