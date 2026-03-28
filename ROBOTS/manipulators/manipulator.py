@@ -1,4 +1,4 @@
-from joints import JointTypes, Joint, LinkBodyAssumptions
+from ROBOTS.manipulators.joints import JointTypes, Joint, LinkBodyAssumptions
 from utils import process_joint_string, validate_joint_string
 from sympy import Matrix, simplify, Rational, diff, symbols, trigsimp
 from typing import List, Union
@@ -46,7 +46,6 @@ class Manipulator(Robot):
 
         for i in range(0,self.n_joints):
             if self.jointsequence[i]=='R':
-
                 self.jointlist.append(Joint(JointTypes.REVOLUTE,i+1,assumptions[i]))
             elif self.jointsequence[i]=='P':
                 self.jointlist.append(Joint(JointTypes.PRISMATIC,i+1,assumptions[i]))

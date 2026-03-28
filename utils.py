@@ -116,7 +116,6 @@ def Pfaffian_from_constraints(constraints: List, coords: List[str]):
         rows.append(row)
     return Matrix(rows), q_dots
 
-def KinematicModelFromConstraints(constraints: List, coords: List[str], display=True) -> tuple[Matrix, Matrix, List[Symbol]]:
     """
     Derives the kinematic model q_dot = G(q) * u from a set of Pfaffian constraints.
 

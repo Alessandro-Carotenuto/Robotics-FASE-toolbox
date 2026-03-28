@@ -11,7 +11,7 @@ class KinematicPreset(Enum):
     BICYCLE_FWD  = 3
 
 
-class KinematicModel:
+class KinematicModel():
     """
     Derives and represents the kinematic model of a mobile robot: q_dot = G(q) * u
 
