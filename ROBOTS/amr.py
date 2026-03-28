@@ -1,8 +1,4 @@
 from ROBOTS.robot import Robot
-
-#TO DO : Function to Derive a Kinematic Model from constraints
-#TO DO : Known Kinematic Model presets
-
 #TO DO : Feedback Control
 
 #TO DO : Path Planning -> Artificial potential fields
@@ -15,4 +11,4 @@ from ROBOTS.robot import Robot
 class Mobile(Robot):
     def __init__(self, kinematic_model: KinematicModel):
         super().__init__() 
-        pass
+        self.Kinematic_Model=kinematic_model

@@ -136,8 +136,8 @@ pprint(robot.G)
 - [ ] Symbolic Recursive Newton-Euler algorithm
 
 ### Autonomous Mobile Robot (`amr.py`)
-- [ ] Derive kinematic model from constraints
-- [ ] Kinematic model presets (differential drive, omnidirectional, Ackermann, etc.)
+- [X] Derive kinematic model from constraints
+- [X] Kinematic model presets (differential drive, omnidirectional, Ackermann, etc.)
 - [ ] Feedback control
 - [ ] Path planning — Artificial Potential Fields
 - [ ] Path planning — RRT and RRT*
