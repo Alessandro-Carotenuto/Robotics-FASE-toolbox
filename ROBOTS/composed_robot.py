@@ -1,4 +1,4 @@
-from robot import Robot
+from ROBOTS.robot import Robot
 
 class Composed_Robot(Robot):
     def __init__(self):

@@ -1,4 +1,7 @@
-from sympy import cos, sin, Matrix
+from sympy import cos, sin, Matrix, symbols, Matrix
+from sympy.parsing.sympy_parser import parse_expr
+from typing import List
+
 
 def validate_joint_string(s: str) -> bool:
     assert isinstance(s, str), "Joint string must be a string"
@@ -35,7 +38,6 @@ def process_joint_string(s: str) -> str:
             i += 1
     return result
 
-
 def rot_x(theta):
     """Rotation matrix around the X axis."""
     return Matrix([
@@ -70,3 +72,45 @@ def skew(v):
         [ v[2],  0,    -v[0]],
         [-v[1],  v[0],  0   ]
     ])
+
+def expression_to_sympy(s: str):
+    """
+    Parses a mathematical expression string into a SymPy expression.
+    Symbols are created automatically from the string.
+    Velocities should be written in _dot notation (e.g. x_dot, theta_dot).
+
+    Usage:
+        expr = expression_to_sympy("x_dot*sin(theta) - y_dot*cos(theta)")
+    """
+    return parse_expr(s, transformations='all')
+
+def Pfaffian_from_constraints(constraints: List, coords: List[str]):
+    """
+    Builds the Pfaffian constraint matrix A^T(q) from a list of
+    holonomic/non-holonomic constraints linear in q_dot.
+    
+    Each constraint must be a SymPy expression equal to zero,
+    with velocities in _dot notation (e.g. x_dot, theta_dot).
+
+    Args:
+        constraints : list of SymPy expressions (each = 0)
+        coords      : list of coordinate names as strings
+                      e.g. ['x_f', 'y_f', 'theta', 'phi']
+
+    Returns:
+        A^T(q) : SymPy Matrix of shape (n_constraints x n_coords)
+                 such that A^T(q) * q_dot = 0
+
+    Usage:
+        C1 = expression_to_sympy("x_dot*sin(theta) - y_dot*cos(theta)")
+        C2 = expression_to_sympy("x_f_dot*sin(phi+theta) - y_f_dot*cos(theta+phi)")
+        A  = Pfaffian_from_constraints([C1, C2], ['x_f', 'y_f', 'theta', 'phi'])
+    """
+
+    q_dots = [symbols(c + '_dot') for c in coords]
+    rows = []
+    for constraint in constraints:
+        constraint = constraint.expand()  # <-- add this
+        row = [constraint.coeff(qdot) for qdot in q_dots]
+        rows.append(row)
+    return Matrix(rows)

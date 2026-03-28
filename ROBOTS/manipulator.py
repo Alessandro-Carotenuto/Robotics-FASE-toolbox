@@ -2,7 +2,7 @@ from joints import JointTypes, Joint, LinkBodyAssumptions
 from utils import process_joint_string, validate_joint_string
 from sympy import Matrix, simplify, Rational, diff, symbols, trigsimp
 from typing import List, Union
-from robot import Robot
+from ROBOTS.robot import Robot
 
 class Manipulator(Robot):
     #TO DO : check len assumption if matches joint sequence after processing
