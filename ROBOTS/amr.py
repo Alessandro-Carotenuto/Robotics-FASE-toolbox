@@ -13,6 +13,6 @@ from ROBOTS.robot import Robot
 #TO DO : Kalman Filter, SLAM
 
 class Mobile(Robot):
-    def __init__(self):
+    def __init__(self, kinematic_model: KinematicModel):
         super().__init__() 
         pass
