@@ -1,4 +1,5 @@
 from ROBOTS.robot import Robot
+from ROBOTS.amr.kinematic_model import KinematicModel
 #TO DO : Feedback Control
 
 #TO DO : Path Planning -> Artificial potential fields
