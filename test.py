@@ -1,6 +1,6 @@
 import sympy as sp
 from sympy import pi, symbols, pprint, sin, cos
-from utils import expression_to_sympy, Pfaffian_from_constraints
+from utils import expression_to_sympy, Pfaffian_from_constraints, KinematicModelFromConstraints
 
 l, theta, phi = symbols('l theta phi')
 x_f_dot, y_f_dot, theta_dot = symbols('x_f_dot y_f_dot theta_dot')
@@ -14,6 +14,4 @@ Constraint_2 = expression_to_sympy("x_f_dot*sin(phi+theta)-y_f_dot*cos(theta+phi
 Constraint = [Constraint_1, Constraint_2]
 Coordinates = ['x_f', 'y_f', 'theta', 'phi']
 
-A = Pfaffian_from_constraints(Constraint, Coordinates)
-A = sp.trigsimp(A)
-pprint(A)
+A = KinematicModelFromConstraints(Constraint, Coordinates)
