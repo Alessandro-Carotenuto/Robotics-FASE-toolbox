@@ -14,7 +14,7 @@ class Simulator():
 
 class KinematicSimulator(Simulator):
     def __init__(self, KM: KinematicModel, method: StepType = StepType.EULER):
-        self.KM = KM
+        self.Kinematic_Model = KM
         self.method = method
         self.q_syms = [symbols(c) for c in KM.coords]
         self.G_func = lambdify(self.q_syms, KM.G, modules='numpy')
