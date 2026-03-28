@@ -17,6 +17,14 @@ class KinematicSimulator(Simulator):
         self.Kinematic_Model = KM
         self.method = method
         self.q_syms = [symbols(c) for c in KM.coords]
+
+        
+        free_syms = KM.G.free_symbols - set(self.q_syms)
+        
+        assert len(free_syms) == 0, \
+        f"G contiene simboli non sostituiti: {free_syms}. Sostituiscili prima di creare il simulatore."
+
+
         self.G_func = lambdify(self.q_syms, KM.G, modules='numpy')
 
     def _check_compatibility(self, robot: Mobile):
@@ -32,16 +40,16 @@ class KinematicSimulator(Simulator):
             self._rk4(robot, u, dt)
 
     def _euler(self, robot: Mobile, u: np.array, dt: float):
-        G_num = self.G_func(*robot.q)
+        G_num = np.array(self.G_func(*robot.q), dtype=float)
         q_dot = G_num @ u
         robot.q = robot.q + q_dot * dt
 
     def _rk4(self, robot: Mobile, u: np.array, dt: float):
         q = robot.q
-        k1 = self.G_func(*q)             @ u
-        k2 = self.G_func(*(q + dt/2*k1)) @ u
-        k3 = self.G_func(*(q + dt/2*k2)) @ u
-        k4 = self.G_func(*(q + dt*k3))   @ u
+        k1 = np.array(self.G_func(*q),           dtype=float) @ u
+        k2 = np.array(self.G_func(*(q + dt/2*k1)), dtype=float) @ u
+        k3 = np.array(self.G_func(*(q + dt/2*k2)), dtype=float) @ u
+        k4 = np.array(self.G_func(*(q + dt*k3)),   dtype=float) @ u
         robot.q = q + (dt/6) * (k1 + 2*k2 + 2*k3 + k4)
 
 class Dynamic_Simulator(Simulator):

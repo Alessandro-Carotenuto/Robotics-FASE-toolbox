@@ -1,5 +1,7 @@
 from ROBOTS.robot import Robot
 from ROBOTS.amr.kinematic_model import KinematicModel
+import numpy as np
+
 #TO DO : Feedback Control
 
 #TO DO : Path Planning -> Artificial potential fields
@@ -14,3 +16,4 @@ class Mobile(Robot):
         super().__init__() 
         self.Kinematic_Model=kinematic_model
         self.q = np.zeros(len(kinematic_model.coords))  # [0.0, ..., 0.0]
+        self.physical_parameters = {}
