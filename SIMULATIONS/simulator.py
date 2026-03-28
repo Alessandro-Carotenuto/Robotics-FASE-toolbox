@@ -24,6 +24,7 @@ class KinematicSimulator(Simulator):
             f"Robot KM coords {robot.KM.coords} non compatibili con Simulator KM coords {self.KM.coords}"
 
     def step(self, robot: Mobile, u: np.array, dt: float):
+        assert robot.q is not None, "robot.q not initialized"
         self._check_compatibility(robot)
         if self.method == StepType.EULER:
             self._euler(robot, u, dt)

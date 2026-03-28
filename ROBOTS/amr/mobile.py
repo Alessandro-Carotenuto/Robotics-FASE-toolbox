@@ -13,3 +13,4 @@ class Mobile(Robot):
     def __init__(self, kinematic_model: KinematicModel):
         super().__init__() 
         self.Kinematic_Model=kinematic_model
+        self.q = None  # Initializing, coord to substitute
