@@ -7,14 +7,17 @@ A symbolic robotics toolbox built in Python using [SymPy](https://www.sympy.org/
 ## Architecture
 
 ```
-robot.py            # Base Robot class
-├── manipulator.py  # Serial manipulator (kinematics + dynamics)
-├── amr.py          # Autonomous Mobile Robot
-└── composed_robot.py   # Composed / hybrid robot systems
+robot.py                        # Base Robot class
+├── manipulator.py              # Serial manipulator (kinematics + dynamics)
+├── ROBOTS/amr/
+│   ├── kinematic_model.py      # KinematicModel + KinematicPreset (constraints / presets)
+│   ├── mobile.py               # Mobile robot class
+│   └── simulator.py            # KinematicSimulator (Euler / RK4), Dynamic_Simulator
+└── composed_robot.py           # Composed / hybrid robot systems
 
-joints.py           # Joint and link definitions (DH, inertia tensors)
-utils.py            # Helper functions (rotation matrices, skew-symmetric, joint string parser)
-test.py             # Scratch / experimentation scripts
+joints.py                       # Joint and link definitions (DH, inertia tensors)
+utils.py                        # Helper functions (rotation matrices, skew-symmetric, joint string parser)
+test.py                         # Scratch / experimentation scripts
 ```
 
 ---
@@ -74,6 +77,49 @@ Each joint holds its DH parameters as SymPy symbols and supports multiple **iner
 
 ---
 
+### Autonomous Mobile Robot (`ROBOTS/amr/`)
+
+#### Kinematic Model (`kinematic_model.py`)
+
+Build the kinematic model `q_dot = G(q) * u` either from explicit Pfaffian constraints or from a built-in preset:
+
+```python
+from ROBOTS.amr.kinematic_model import KinematicModel, KinematicPreset
+
+# From preset
+model = KinematicModel(preset=KinematicPreset.UNICYCLE)
+model = KinematicModel(preset=KinematicPreset.BICYCLE_RWD)
+
+# From constraints
+model = KinematicModel(constraints=[C1, C2], coords=['x_f', 'y_f', 'theta', 'phi'])
+```
+
+Available presets:
+
+| Preset | Reference point | Coordinates | Inputs |
+|---|---|---|---|
+| `UNICYCLE` | Centre | `[x, y, θ]` | `[v, ω]` |
+| `BICYCLE_RWD` | Rear axle | `[x, y, θ, φ]` | `[v, φ_dot]` |
+| `BICYCLE_FWD` | Front axle | `[x_f, y_f, θ, φ]` | `[v_f, φ_dot]` |
+
+#### Simulator (`simulator.py`)
+
+Numerically integrate the kinematic model forward in time:
+
+```python
+from ROBOTS.amr.simulator import KinematicSimulator, StepType
+
+sim = KinematicSimulator(model, method=StepType.RK4)
+sim.step(robot, u=np.array([1.0, 0.5]), dt=0.01)
+```
+
+| Method | Description |
+|---|---|
+| `StepType.EULER` | First-order Euler integration |
+| `StepType.RK4` | Fourth-order Runge-Kutta integration |
+
+---
+
 ### Utility Functions (`utils.py`)
 
 | Function | Description |
@@ -84,6 +130,8 @@ Each joint holds its DH parameters as SymPy symbols and supports multiple **iner
 | `skew(v)` | Skew-symmetric matrix for cross-product `v × w` |
 | `validate_joint_string(s)` | Validates joint string syntax (e.g. `"2R1P"`) |
 | `process_joint_string(s)` | Expands shorthand (e.g. `"2R"` → `"RR"`) |
+| `expression_to_sympy(s)` | Parses a constraint string into a SymPy expression |
+| `Pfaffian_from_constraints(c, coords)` | Builds the Pfaffian matrix `A^T(q)` from constraint list |
 
 ---
 
@@ -113,6 +161,20 @@ pprint(robot.M)
 pprint(robot.G)
 ```
 
+```python
+from ROBOTS.amr.kinematic_model import KinematicModel, KinematicPreset
+from ROBOTS.amr.mobile import Mobile
+from ROBOTS.amr.simulator import KinematicSimulator, StepType
+import numpy as np
+
+model  = KinematicModel(preset=KinematicPreset.UNICYCLE)
+robot  = Mobile(kinematic_model=model)
+robot.q = np.array([0.0, 0.0, 0.0])
+
+sim = KinematicSimulator(model, method=StepType.RK4)
+sim.step(robot, u=np.array([1.0, 0.3]), dt=0.05)
+```
+
 ---
 
 ## Roadmap / To-Do
@@ -135,9 +197,10 @@ pprint(robot.G)
 - [ ] Performance: Propagated Jacobian Method, Screw Theory / Lie Algebra formulation
 - [ ] Symbolic Recursive Newton-Euler algorithm
 
-### Autonomous Mobile Robot (`amr.py`)
-- [X] Derive kinematic model from constraints
-- [X] Kinematic model presets (differential drive, omnidirectional, Ackermann, etc.)
+### Autonomous Mobile Robot (`ROBOTS/amr/`)
+- [x] Derive kinematic model from constraints
+- [x] Kinematic model presets (Unicycle, Bicycle RWD, Bicycle FWD)
+- [x] Kinematic simulator — Euler and RK4 integration
 - [ ] Feedback control
 - [ ] Path planning — Artificial Potential Fields
 - [ ] Path planning — RRT and RRT*
