@@ -4,6 +4,9 @@ from sympy import symbols, lambdify
 from ROBOTS.amr.kinematic_model import KinematicModel
 from ROBOTS.amr.mobile import Mobile
 
+#TO DO: RESTRUCTURE THE SIMULATOR - ROBOT - ENVIRONMENT RELATIONSHIP
+# ONE SIMULATOR FOR KM IS WRONG; ONE SIMULATOR FOR ROBOT IS CORRECT
+
 class StepType(Enum):
     EULER = 1
     RK4 = 2
@@ -20,7 +23,7 @@ class KinematicSimulator(Simulator):
 
         
         free_syms = KM.G.free_symbols - set(self.q_syms)
-        
+
         assert len(free_syms) == 0, \
         f"G contiene simboli non sostituiti: {free_syms}. Sostituiscili prima di creare il simulatore."
 
