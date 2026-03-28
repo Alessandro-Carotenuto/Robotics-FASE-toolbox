@@ -20,8 +20,8 @@ class KinematicSimulator(Simulator):
         self.G_func = lambdify(self.q_syms, KM.G, modules='numpy')
 
     def _check_compatibility(self, robot: Mobile):
-        assert robot.KM.coords == self.KM.coords, \
-            f"Robot KM coords {robot.KM.coords} non compatibili con Simulator KM coords {self.KM.coords}"
+        assert robot.Kinematic_Model.coords == self.Kinematic_Model.coords, \
+            f"Robot KM coords {robot.Kinematic_Model.coords} non compatibili con Simulator KM coords {self.Kinematic_Model.coords}"
 
     def step(self, robot: Mobile, u: np.array, dt: float):
         assert robot.q is not None, "robot.q not initialized"
