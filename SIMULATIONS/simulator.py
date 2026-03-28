@@ -37,7 +37,7 @@ class KinematicSimulator(Simulator):
 
     def _rk4(self, robot: Mobile, u: np.array, dt: float):
         q = robot.q
-        k1 = self.G_func(*q)              @ u
+        k1 = self.G_func(*q)             @ u
         k2 = self.G_func(*(q + dt/2*k1)) @ u
         k3 = self.G_func(*(q + dt/2*k2)) @ u
         k4 = self.G_func(*(q + dt*k3))   @ u
