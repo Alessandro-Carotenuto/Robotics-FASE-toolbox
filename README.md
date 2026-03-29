@@ -255,14 +255,21 @@ disp.animate_display("Multi-Robot Simulation")
 
 ## Roadmap / To-Do
 
+<details><summary>Manipulator</summary>
+
 ### Manipulator
 
+<details><summary>Minor Test and fixes</summary>
+
 #### Minor Test and fixes
+
 - [ ] Validate that the number of `LinkBodyAssumptions` entries matches the joint count
 - [ ] Verbose debug output for intermediate calculation steps
 - [ ] Formal verification of Coriolis matrix against textbook formulations
 - [ ] Improved readability of symbolic outputs
+</details>
 
+<details><summary>Major Updates</summary>
 
 #### Major Updates
 - [ ] Reachable workspace computation
@@ -276,13 +283,25 @@ disp.animate_display("Multi-Robot Simulation")
 - [ ] Adaptive control
 - [ ] Symbolic Recursive Newton-Euler algorithm
 - [ ] Inverse kinematics, Analytical
+</details>
+
+<details><summary>Performance Improvements</summary>
 
 #### Performance (manipulators)
 - [ ] Propagated Jacobian Method, Screw Theory / Lie Algebra formulation
+</details>
+
+
+<details><summary>IN/OUT Updates</summary>
 
 #### IN/OUT Updates
 - [ ] URDF file import/export
 
+</details>
+</details>
+
+<details><summary>Autonomous Mobile Robot</summary>
+    
 ### Autonomous Mobile Robot
 - [x] Derive kinematic model from constraints (Pfaffian null-space method)
 - [x] Kinematic model presets — Unicycle, Bicycle RWD, Bicycle FWD
@@ -299,11 +318,18 @@ disp.animate_display("Multi-Robot Simulation")
 - [ ] Kalman Filter & Extended Kalman Filter
 - [ ] SLAM
 
+<details><summary>Performance Improvements</summary>
 #### Performance (amr)
 - [ ] OPTIMIZE ANIMATION WITH SET DATA
+</details>
+</details>
+
+<details><summary>General / Infrastructure</summary>
 
 ### General / Infrastructure
 - [ ] Expand `Composed_Robot` for hybrid mobile-manipulation systems
 - [ ] Expand `Robot` base class with shared interface (control loop, state, etc.)
 - [ ] Unit tests for kinematics and dynamics outputs
 - [ ] Benchmarking symbolic computation time vs. numerical methods
+
+</details>
