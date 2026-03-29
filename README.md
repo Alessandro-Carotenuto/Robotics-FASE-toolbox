@@ -320,6 +320,7 @@ disp.animate_display("Multi-Robot Simulation")
 - [ ] SLAM
 
 <details><summary>Performance Improvements</summary>
+
 #### Performance (amr)
 - [ ] OPTIMIZE ANIMATION WITH SET DATA
 </details>
