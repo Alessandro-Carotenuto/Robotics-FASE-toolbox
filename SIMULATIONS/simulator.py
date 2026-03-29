@@ -17,12 +17,12 @@ class Simulator():
 
 class KinematicSimulator(Simulator):
     def __init__(self, robot: Mobile, method: StepType = StepType.EULER):
-        KM = robot.Kinematic_Model
+        self.KM = robot.Kinematic_Model
         self.method = method
-        self.q_syms = [symbols(c) for c in KM.coords]
+        self.q_syms = [symbols(c) for c in self.KM.coords]
 
         # Sostituisce i parametri fisici (es. l=1.5) nel G simbolico
-        G_subst = KM.G.subs(robot.physical_parameters)
+        G_subst = self.KM.G.subs(robot.physical_parameters)
 
         free_syms = G_subst.free_symbols - set(self.q_syms)
         assert len(free_syms) == 0, \
@@ -32,8 +32,8 @@ class KinematicSimulator(Simulator):
         self.G_func = lambdify(self.q_syms, G_subst, modules='numpy')
 
     def _check_compatibility(self, robot: Mobile):
-        assert robot.Kinematic_Model.coords == self.Kinematic_Model.coords, \
-            f"Robot KM coords {robot.Kinematic_Model.coords} non compatibili con Simulator KM coords {self.Kinematic_Model.coords}"
+        assert robot.Kinematic_Model.coords == self.KM.coords, \
+            f"Robot KM coords {robot.Kinematic_Model.coords} non compatibili con Simulator KM coords {self.KM.coords}"
 
     def step(self, robot: Mobile, u: np.array, dt: float):
         assert robot.q is not None, "robot.q not initialized"
