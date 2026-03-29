@@ -255,7 +255,7 @@ disp.animate_display("Multi-Robot Simulation")
 
 ## Roadmap / To-Do
 
-<details><summary>Manipulator</summary>
+<details><summary><span style="color:orange">Manipulator</span></summary>
 
 ### Manipulator
 
@@ -300,7 +300,8 @@ disp.animate_display("Multi-Robot Simulation")
 </details>
 </details>
 
-<details><summary>Autonomous Mobile Robot</summary>
+
+<details><summary><span style="color:orange">Autonomous Mobile Robot</span></summary>
     
 ### Autonomous Mobile Robot
 - [x] Derive kinematic model from constraints (Pfaffian null-space method)
@@ -324,7 +325,7 @@ disp.animate_display("Multi-Robot Simulation")
 </details>
 </details>
 
-<details><summary>General / Infrastructure</summary>
+<details><summary><span style="color:orange">General / Infrastructure</span></summary>
 
 ### General / Infrastructure
 - [ ] Expand `Composed_Robot` for hybrid mobile-manipulation systems
