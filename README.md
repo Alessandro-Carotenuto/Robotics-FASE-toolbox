@@ -7,17 +7,21 @@ A symbolic robotics toolbox built in Python using [SymPy](https://www.sympy.org/
 ## Architecture
 
 ```
-robot.py                        # Base Robot class
-├── manipulator.py              # Serial manipulator (kinematics + dynamics)
+robot.py                              # Base Robot class
+├── manipulator.py                    # Serial manipulator (kinematics + dynamics)
 ├── ROBOTS/amr/
-│   ├── kinematic_model.py      # KinematicModel + KinematicPreset (constraints / presets)
-│   ├── mobile.py               # Mobile robot class
-│   └── simulator.py            # KinematicSimulator (Euler / RK4), Dynamic_Simulator
-└── composed_robot.py           # Composed / hybrid robot systems
+│   ├── kinematic_model.py            # KinematicModel + KinematicPreset (constraints / presets)
+│   └── mobile.py                     # Mobile robot class
+└── composed_robot.py                 # Composed / hybrid robot systems
 
-joints.py                       # Joint and link definitions (DH, inertia tensors)
-utils.py                        # Helper functions (rotation matrices, skew-symmetric, joint string parser)
-test.py                         # Scratch / experimentation scripts
+SIMULATIONS/
+├── simulator.py                      # KinematicSimulator (Euler / RK4), Dynamic_Simulator
+├── environment.py                    # Environment (multi-robot orchestration)
+└── displayer.py                      # Displayer (static + animated rendering)
+
+joints.py                             # Joint and link definitions (DH, inertia tensors)
+utils.py                              # Helper functions (rotation matrices, skew-symmetric, joint string parser, Pfaffian)
+test.py                               # Scratch / experimentation scripts
 ```
 
 ---
@@ -101,15 +105,20 @@ Available presets:
 | `UNICYCLE` | Centre | `[x, y, θ]` | `[v, ω]` |
 | `BICYCLE_RWD` | Rear axle | `[x, y, θ, φ]` | `[v, φ_dot]` |
 | `BICYCLE_FWD` | Front axle | `[x_f, y_f, θ, φ]` | `[v_f, φ_dot]` |
+| `CAR_WITH_TRAILER` | Car rear axle | `[x, y, θ, φ, β]` | `[v, φ_dot]` |
 
-#### Simulator (`simulator.py`)
+The `CAR_WITH_TRAILER` preset also exposes an `extra_points` callback, used by the `Displayer` to animate the trailer body alongside the car.
+
+---
+
+#### Simulator (`SIMULATIONS/simulator.py`)
 
 Numerically integrate the kinematic model forward in time:
 
 ```python
-from ROBOTS.amr.simulator import KinematicSimulator, StepType
+from SIMULATIONS.simulator import KinematicSimulator, StepType
 
-sim = KinematicSimulator(model, method=StepType.RK4)
+sim = KinematicSimulator(robot, method=StepType.RK4)
 sim.step(robot, u=np.array([1.0, 0.5]), dt=0.01)
 ```
 
@@ -117,6 +126,43 @@ sim.step(robot, u=np.array([1.0, 0.5]), dt=0.01)
 |---|---|
 | `StepType.EULER` | First-order Euler integration |
 | `StepType.RK4` | Fourth-order Runge-Kutta integration |
+
+The simulator validates that all physical parameters (e.g. wheelbase `l`) have been substituted before lambdifying `G(q)`.
+
+---
+
+#### Environment (`SIMULATIONS/environment.py`)
+
+Orchestrates multiple robots in a shared simulation loop:
+
+```python
+from SIMULATIONS.environment import Environment
+
+env = Environment(robotlist=[r1, r2, r3])
+
+env.setCommand(r1, np.array([1.0, 0.1]))
+env.setCommand(r2, np.array([0.8, 0.2]))
+
+env.run(steps=200, dt=0.05)
+```
+
+Each robot gets its own `KinematicSimulator`. Trajectories are logged automatically at every step and accessible via `env.trajectories`.
+
+---
+
+#### Displayer (`SIMULATIONS/displayer.py`)
+
+Renders trajectories from an `Environment`:
+
+```python
+from SIMULATIONS.displayer import Displayer
+
+disp = Displayer(env)
+disp.display("Static Plot")        # static trajectory plot
+disp.animate_display("Animation")  # frame-by-frame animated plot
+```
+
+The `animate_display` method also renders **extra points** (e.g. trailer position) as dashed lines when the kinematic model defines an `extra_points` callback.
 
 ---
 
@@ -132,6 +178,7 @@ sim.step(robot, u=np.array([1.0, 0.5]), dt=0.01)
 | `process_joint_string(s)` | Expands shorthand (e.g. `"2R"` → `"RR"`) |
 | `expression_to_sympy(s)` | Parses a constraint string into a SymPy expression |
 | `Pfaffian_from_constraints(c, coords)` | Builds the Pfaffian matrix `A^T(q)` from constraint list |
+| `KinematicModelFromConstraints(c, coords)` | Full pipeline: constraints → `G(q)`, `q_dot`, velocity symbols |
 
 ---
 
@@ -140,12 +187,14 @@ sim.step(robot, u=np.array([1.0, 0.5]), dt=0.01)
 ```bash
 git clone https://github.com/your-repo/Robotics-FASE-toolbox.git
 cd Robotics-FASE-toolbox
-pip install sympy
+pip install sympy numpy matplotlib
 ```
 
 ---
 
-## Quick Example
+## Quick Examples
+
+### Serial Manipulator
 
 ```python
 from manipulator import Manipulator, LinkBodyAssumptions
@@ -154,25 +203,52 @@ from sympy import pprint
 # 2-DOF planar revolute arm, planar body assumption
 robot = Manipulator("RR", assumptions=LinkBodyAssumptions.PLANAR)
 
-# Inspect the inertia matrix
-pprint(robot.M)
-
-# Inspect the gravity vector
-pprint(robot.G)
+pprint(robot.M)   # inertia matrix
+pprint(robot.G)   # gravity vector
 ```
+
+### Mobile Robot — Single Unicycle
 
 ```python
 from ROBOTS.amr.kinematic_model import KinematicModel, KinematicPreset
 from ROBOTS.amr.mobile import Mobile
-from ROBOTS.amr.simulator import KinematicSimulator, StepType
+from SIMULATIONS.simulator import KinematicSimulator, StepType
 import numpy as np
 
-model  = KinematicModel(preset=KinematicPreset.UNICYCLE)
-robot  = Mobile(kinematic_model=model)
-robot.q = np.array([0.0, 0.0, 0.0])
+model = KinematicModel(preset=KinematicPreset.UNICYCLE)
+robot = Mobile(kinematic_model=model)
 
-sim = KinematicSimulator(model, method=StepType.RK4)
+sim = KinematicSimulator(robot, method=StepType.RK4)
 sim.step(robot, u=np.array([1.0, 0.3]), dt=0.05)
+```
+
+### Multi-Robot Environment with Animation
+
+```python
+from ROBOTS.amr.kinematic_model import KinematicModel, KinematicPreset
+from ROBOTS.amr.mobile import Mobile
+from SIMULATIONS.environment import Environment
+from SIMULATIONS.displayer import Displayer
+from sympy import symbols
+import numpy as np
+
+unicycle    = KinematicModel(preset=KinematicPreset.UNICYCLE)
+bicycle     = KinematicModel(preset=KinematicPreset.BICYCLE_RWD)
+car_trailer = KinematicModel(preset=KinematicPreset.CAR_WITH_TRAILER)
+
+r1 = Mobile(kinematic_model=unicycle)
+r2 = Mobile(kinematic_model=bicycle,     physical_parameters={symbols('l'): 1.0})
+r3 = Mobile(kinematic_model=car_trailer, physical_parameters={symbols('l'): 2.5, symbols('L'): 3.0})
+
+env = Environment(robotlist=[r1, r2, r3])
+env.setCommand(r1, np.array([1.0, 0.1]))
+env.setCommand(r2, np.array([1.0, 0.1]))
+env.setCommand(r3, np.array([1.0, 0.1]))
+
+env.run(steps=200, dt=0.05)
+
+disp = Displayer(env)
+disp.animate_display("Multi-Robot Simulation")
 ```
 
 ---
@@ -198,9 +274,14 @@ sim.step(robot, u=np.array([1.0, 0.3]), dt=0.05)
 - [ ] Symbolic Recursive Newton-Euler algorithm
 
 ### Autonomous Mobile Robot (`ROBOTS/amr/`)
-- [x] Derive kinematic model from constraints
-- [x] Kinematic model presets (Unicycle, Bicycle RWD, Bicycle FWD)
+- [x] Derive kinematic model from constraints (Pfaffian null-space method)
+- [x] Kinematic model presets — Unicycle, Bicycle RWD, Bicycle FWD
+- [x] Kinematic model preset — Car with trailer (5-DOF, articulation angle `β`)
+- [x] `extra_points` callback on `KinematicModel` for articulated body rendering
 - [x] Kinematic simulator — Euler and RK4 integration
+- [x] Physical parameter substitution and validation at simulator construction
+- [x] Multi-robot `Environment` — shared simulation loop, per-robot command assignment, trajectory logging
+- [x] `Displayer` — static trajectory plot and frame-by-frame animation (with extra-point support)
 - [ ] Feedback control
 - [ ] Path planning — Artificial Potential Fields
 - [ ] Path planning — RRT and RRT*
