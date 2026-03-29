@@ -256,24 +256,34 @@ disp.animate_display("Multi-Robot Simulation")
 ## Roadmap / To-Do
 
 ### Manipulator
+
+#### Minor Test and fixes
 - [ ] Validate that the number of `LinkBodyAssumptions` entries matches the joint count
 - [ ] Verbose debug output for intermediate calculation steps
-- [ ] Dynamic parameter linearisation (`getDynamicCoefficients`): extract base parameters using `expand()` + `as_independent()`
+- [ ] Formal verification of Coriolis matrix against textbook formulations
+- [ ] Improved readability of symbolic outputs
+
+
+#### Major Updates
 - [ ] Reachable workspace computation
 - [ ] Dextrous workspace computation
 - [ ] Singularity detection and constraint analysis
-- [ ] Inverse kinematics — numerical (iterative) and analytical
+- [ ] Dynamic parameter linearisation (`getDynamicCoefficients`): extract base parameters using `expand()` + `as_independent()`
+- [ ] Inverse kinematics, Numerical
 - [ ] Trajectory planning for manipulators
 - [ ] Kinematic control
 - [ ] Dynamic control
 - [ ] Adaptive control
-- [ ] Formal verification of Coriolis matrix against textbook formulations
-- [ ] URDF file import/export
-- [ ] Improved readability of symbolic outputs
-- [ ] Performance: Propagated Jacobian Method, Screw Theory / Lie Algebra formulation
 - [ ] Symbolic Recursive Newton-Euler algorithm
+- [ ] Inverse kinematics, Analytical
 
-### Autonomous Mobile Robot (`ROBOTS/amr/`)
+#### Performance (manipulators)
+- [ ] Propagated Jacobian Method, Screw Theory / Lie Algebra formulation
+
+#### IN/OUT Updates
+- [ ] URDF file import/export
+
+### Autonomous Mobile Robot
 - [x] Derive kinematic model from constraints (Pfaffian null-space method)
 - [x] Kinematic model presets — Unicycle, Bicycle RWD, Bicycle FWD
 - [x] Kinematic model preset — Car with trailer (5-DOF, articulation angle `β`)
@@ -286,17 +296,14 @@ disp.animate_display("Multi-Robot Simulation")
 - [ ] Path planning — Artificial Potential Fields
 - [ ] Path planning — RRT and RRT*
 - [ ] Trajectory tracking
-- [ ] Kalman Filter
+- [ ] Kalman Filter & Extended Kalman Filter
 - [ ] SLAM
+
+#### Performance (amr)
+- [ ] OPTIMIZE ANIMATION WITH SET DATA
 
 ### General / Infrastructure
 - [ ] Expand `Composed_Robot` for hybrid mobile-manipulation systems
 - [ ] Expand `Robot` base class with shared interface (control loop, state, etc.)
 - [ ] Unit tests for kinematics and dynamics outputs
 - [ ] Benchmarking symbolic computation time vs. numerical methods
-
----
-
-## License
-
-To be defined.
