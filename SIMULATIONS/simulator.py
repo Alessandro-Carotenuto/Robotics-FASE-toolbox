@@ -4,9 +4,6 @@ from sympy import symbols, lambdify
 from ROBOTS.amr.kinematic_model import KinematicModel
 from ROBOTS.amr.mobile import Mobile
 
-#TO DO: RESTRUCTURE THE SIMULATOR - ROBOT - ENVIRONMENT RELATIONSHIP
-# ONE SIMULATOR FOR KM IS WRONG; ONE SIMULATOR FOR ROBOT IS CORRECT
-
 class StepType(Enum):
     EULER = 1
     RK4 = 2
