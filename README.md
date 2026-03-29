@@ -315,7 +315,8 @@ disp.animate_display("Multi-Robot Simulation")
 - [ ] Lie Bracket for controllability analysis: case of 2 vectors
 - [ ] Lie Bracket for controllability analysis: general case
 - [ ] Controllability analysis leveraging Lie Bracket results
-- [ ] Feedback control 
+- [ ] Feedback control : With Manually inputed control law
+- [ ] Feedback control : With Preset tunable control laws (e.g. unicycle position control)
 - [ ] Path planning — Artificial Potential Fields
 - [ ] Path planning — RRT and RRT*
 - [ ] Trajectory tracking
