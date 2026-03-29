@@ -12,7 +12,6 @@ class KinematicPreset(Enum):
     BICYCLE_FWD  = 3
     CAR_WITH_TRAILER = 4
 
-
 class KinematicModel():
     """
     Derives and represents the kinematic model of a mobile robot: q_dot = G(q) * u
@@ -55,7 +54,7 @@ class KinematicModel():
             null_vecs = self.constraint_matrix.nullspace()
             null_vecs = [sp.trigsimp(v) for v in null_vecs]
 
-            n_inputs = len(null_vecs)
+            self.n_inputs = len(null_vecs)
             u        = [symbols(f'u_{i+1}') for i in range(n_inputs)]
             self.G   = Matrix.hstack(*null_vecs)
             self.velocity_expression = sp.trigsimp(self.G * Matrix(u))
@@ -158,3 +157,7 @@ class KinematicModel():
                     [tan(phi)/l - sin(beta)/L,      0],
                 ])
                 self.velocity_expression = self.G * Matrix([u1, u2])
+
+    def ControllabilityAnalysis(self):
+        #self.n_inputs 
+        x=LieBrackets(G[:0],G[:1])

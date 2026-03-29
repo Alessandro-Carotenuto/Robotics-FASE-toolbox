@@ -312,7 +312,10 @@ disp.animate_display("Multi-Robot Simulation")
 - [x] Physical parameter substitution and validation at simulator construction
 - [x] Multi-robot `Environment` — shared simulation loop, per-robot command assignment, trajectory logging
 - [x] `Displayer` — static trajectory plot and frame-by-frame animation (with extra-point support)
-- [ ] Feedback control
+- [ ] Lie Bracket for controllability analysis: case of 2 vectors
+- [ ] Lie Bracket for controllability analysis: general case
+- [ ] Controllability analysis leveraging Lie Bracket results
+- [ ] Feedback control 
 - [ ] Path planning — Artificial Potential Fields
 - [ ] Path planning — RRT and RRT*
 - [ ] Trajectory tracking
