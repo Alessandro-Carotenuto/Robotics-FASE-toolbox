@@ -12,8 +12,8 @@ import numpy as np
 #TO DO : Kalman Filter, SLAM
 
 class Mobile(Robot):
-    def __init__(self, kinematic_model: KinematicModel):
-        super().__init__() 
-        self.Kinematic_Model=kinematic_model
-        self.q = np.zeros(len(kinematic_model.coords))  # [0.0, ..., 0.0]
-        self.physical_parameters = {}
+    def __init__(self, kinematic_model: KinematicModel, physical_parameters: dict = None):
+        super().__init__()
+        self.Kinematic_Model = kinematic_model
+        self.q = np.zeros(len(kinematic_model.coords))
+        self.physical_parameters = physical_parameters or {}
