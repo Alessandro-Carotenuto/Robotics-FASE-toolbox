@@ -3,12 +3,14 @@ from sympy import Matrix, Symbol, symbols, sin, cos, tan, pprint
 from typing import List, Optional
 from enum import Enum
 from utils import Pfaffian_from_constraints
+import numpy as np
 
 
 class KinematicPreset(Enum):
     UNICYCLE     = 1
     BICYCLE_RWD  = 2
     BICYCLE_FWD  = 3
+    CAR_WITH_TRAILER = 4
 
 
 class KinematicModel():
@@ -41,6 +43,7 @@ class KinematicModel():
         display:     bool = True,
     ):
         self.constraint_matrix = None
+        self.extra_points = None
 
         if preset is not None:
             self._load_preset(preset)
@@ -123,5 +126,35 @@ class KinematicModel():
                     [sin(theta + phi), 0],
                     [sin(phi) / l,     0],
                     [0,                1],
+                ])
+                self.velocity_expression = self.G * Matrix([u1, u2])
+            
+            case KinematicPreset.CAR_WITH_TRAILER:
+                # q = [x, y, theta, phi, beta],  u = [v, phi_dot]
+                # beta = angolo di articolazione car-trailer (0 = allineati)
+                # l = passo del car,  L = lunghezza del trailer (hitch -> asse)
+                # x_dot     = v * cos(theta)
+                # y_dot     = v * sin(theta)
+                # theta_dot = v/l * tan(phi)
+                # phi_dot   = phi_dot
+                # beta_dot  = v/l * tan(phi) - v/L * sin(beta)
+
+                self.extra_points = lambda q, params: [
+                    (q[0] - params[symbols('L')] * np.cos(q[2] - q[4]),
+                    q[1] - params[symbols('L')] * np.sin(q[2] - q[4]))
+                ]
+
+
+
+                theta, phi, beta, l, L = symbols('theta phi beta l L')
+                u1, u2 = symbols('u_1 u_2')
+                self.coords           = ['x', 'y', 'theta', 'phi', 'beta']
+                self.velocity_symbols = list(symbols('x_dot y_dot theta_dot phi_dot beta_dot'))
+                self.G = Matrix([
+                    [cos(theta),                    0],
+                    [sin(theta),                    0],
+                    [tan(phi) / l,                  0],
+                    [0,                             1],
+                    [tan(phi)/l - sin(beta)/L,      0],
                 ])
                 self.velocity_expression = self.G * Matrix([u1, u2])
