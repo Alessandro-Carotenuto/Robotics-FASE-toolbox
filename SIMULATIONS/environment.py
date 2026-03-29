@@ -8,8 +8,7 @@ from typing import List, Union
 
 class Environment:
     def __init__(self, robotlist: Union[Mobile, List[Mobile]] = None, defaultmethod: StepType = StepType.RK4):
-        self.simulators = {}    # KinematicModel -> KinematicSimulator || Same Simulator for same Kinematic Models
-
+        self.simulators = {}    # id(robot) -> KinematicSimulator
         self.robots = []        # Robot List
         self.commands = {}      # robot -> u
         self.trajectories = {}  # robot -> list of q for logging
@@ -18,18 +17,11 @@ class Environment:
             for robot in robotlist:
                 self.add_robot(robot, defaultmethod)
         
-
-
-
     def add_robot(self, robot: Mobile, method: StepType = StepType.RK4):
-        """Add a robot to the environment and create a simulator for its kinematic model if not already present."""
-        km = robot.Kinematic_Model
-
-        if km not in self.simulators:
-            self.simulators[km] = KinematicSimulator(km, method)
+        self.simulators[id(robot)] = KinematicSimulator(robot, method)  
         self.robots.append(robot)
-        self.commands[id(robot)] = None  # Initialize command for the robot
-        self.trajectories[id(robot)] = [robot.q.copy()]  # Initialize trajectory log
+        self.commands[id(robot)]     = None
+        self.trajectories[id(robot)] = [robot.q.copy()]
 
     def setCommand(self, robot: Mobile, u: np.array):
         """Assign a control input to a robot for the next simulation step."""
@@ -37,11 +29,9 @@ class Environment:
         self.commands[id(robot)] = u
 
     def step(self, dt: float):
-        """Execute one simulation step for all robots using their assigned commands."""
         for robot in self.robots:
-            u = self.commands[id(robot)]
-            assert u is not None, f"Comando non impostato per {robot}"
-            sim = self.simulators[robot.Kinematic_Model]
+            u   = self.commands[id(robot)]
+            sim = self.simulators[id(robot)]   
             sim.step(robot, u, dt)
 
 

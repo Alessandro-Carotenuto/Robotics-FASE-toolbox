@@ -16,19 +16,20 @@ class Simulator():
         pass
 
 class KinematicSimulator(Simulator):
-    def __init__(self, KM: KinematicModel, method: StepType = StepType.EULER):
-        self.Kinematic_Model = KM
+    def __init__(self, robot: Mobile, method: StepType = StepType.EULER):
+        KM = robot.Kinematic_Model
         self.method = method
         self.q_syms = [symbols(c) for c in KM.coords]
 
-        
-        free_syms = KM.G.free_symbols - set(self.q_syms)
+        # Sostituisce i parametri fisici (es. l=1.5) nel G simbolico
+        G_subst = KM.G.subs(robot.physical_parameters)
 
+        free_syms = G_subst.free_symbols - set(self.q_syms)
         assert len(free_syms) == 0, \
-        f"G contiene simboli non sostituiti: {free_syms}. Sostituiscili prima di creare il simulatore."
+            f"G contiene simboli non sostituiti: {free_syms}. " \
+            f"Aggiungili a physical_parameters del robot."
 
-
-        self.G_func = lambdify(self.q_syms, KM.G, modules='numpy')
+        self.G_func = lambdify(self.q_syms, G_subst, modules='numpy')
 
     def _check_compatibility(self, robot: Mobile):
         assert robot.Kinematic_Model.coords == self.Kinematic_Model.coords, \
