@@ -173,38 +173,39 @@ class KinematicModel():
         g=self.null_vecs.copy()
         
         checked={}  #Dictionary for computing the complete Lie Bracket
-
-        while (rank<DoF): #rank<DoF
-            if self.n_inputs<3:
-                ControlMatrix=Matrix.hstack(ControlMatrix,LieBracket2(g[0],g[1],q_syms))
-                rank=ControlMatrix.rank()
-                oneshottest=False
-            else:
-                raise NotImplementedError("Controllability analysis for more than 2 inputs not implemented yet.")
-            
+        lblevel=0
+        while(lblevel == 0 or rank>lastlbrank):
+            lastlbrank=rank
+            newg=g.copy
             for i in range(len(g)-1):
-                for j in range(i,len(g)):
+                for j in range(i+1,len(g)):
                     
                     if g[i] not in checked:
                         checked[g[i]]=[]
                     if g[j] not in checked:
                         checked[g[j]]=[]
                 
-                    LB=LieBracket2(g[i],g[j],q_syms)
-                    checked[g[i]].append(g[j])
-                    checked[g[j]].append(g[i])
-
-                    g=Matrix.hstack(g,LB)
-
-                    ControlMatrix=Matrix.hstack(ControlMatrix,LB)
-                    rank=ControlMatrix.rank()
-
-
-
-        
+                    if g[j] not in checked[g[i]]:
+                        LB=LieBracket2(g[i],g[j],q_syms)
+                        checked[g[i]].append(g[j])
+                        checked[g[j]].append(g[i])
+                        newg=Matrix.hstack(newg,LB)
+                        ControlMatrix=Matrix.hstack(ControlMatrix,LB)
+                        rank=ControlMatrix.rank()
+                        if (rank>=DoF):
+                            print("System is Controllable")
+                            pprint(ControlMatrix)
+                            print(f"Control matrix rank: {rank}")
+                            return True
+                    else:
+                        pass
+            g=newg.copy()
+            lblevel+=1
+            
+        print("Reached the involutive closure")
         pprint(ControlMatrix)
         print(f"Control matrix rank: {rank}")
-        return True
+        return False
         
 
         
