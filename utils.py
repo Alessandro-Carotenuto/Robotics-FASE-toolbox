@@ -1,4 +1,4 @@
-from sympy import cos, sin, Matrix, symbols, Matrix, Symbol, pprint, shape, diff
+from sympy import cos, sin, Matrix, symbols, Matrix, Symbol, pprint, diff
 from sympy.parsing.sympy_parser import parse_expr
 import sympy as sp
 from typing import List
@@ -117,8 +117,8 @@ def Pfaffian_from_constraints(constraints: List, coords: List[str]):
     return Matrix(rows), q_dots
 
 def LieBracket2(v1: Matrix, v2: Matrix, coord: List):
-    assert shape(v1)[1]==1, f"Vector {v1} should be a column-vector"
-    assert shape(v2)[1]==1, f"Vector {v2} should be a column-vector"
+    assert v1.shape[1]==1==1, f"Vector {v1} should be a column-vector"
+    assert v2.shape[1]==1==1, f"Vector {v2} should be a column-vector"
 
     #[g1,g2] = dg2q * g1 - dg1q * g2
 

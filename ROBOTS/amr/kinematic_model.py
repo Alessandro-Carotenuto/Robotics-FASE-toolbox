@@ -176,20 +176,20 @@ class KinematicModel():
         lblevel=0
         while(lblevel == 0 or rank>lastlbrank):
             lastlbrank=rank
-            newg=g.copy
+            newg=g.copy()
             for i in range(len(g)-1):
                 for j in range(i+1,len(g)):
                     
-                    if g[i] not in checked:
-                        checked[g[i]]=[]
-                    if g[j] not in checked:
-                        checked[g[j]]=[]
+                    if i not in checked:
+                        checked[i]=[]
+                    if j not in checked:
+                        checked[j]=[]
                 
-                    if g[j] not in checked[g[i]]:
+                    if j not in checked[i]:
                         LB=LieBracket2(g[i],g[j],q_syms)
-                        checked[g[i]].append(g[j])
-                        checked[g[j]].append(g[i])
-                        newg=Matrix.hstack(newg,LB)
+                        checked[i].append(j)
+                        checked[j].append(i)
+                        newg.append(LB)
                         ControlMatrix=Matrix.hstack(ControlMatrix,LB)
                         rank=ControlMatrix.rank()
                         if (rank>=DoF):
