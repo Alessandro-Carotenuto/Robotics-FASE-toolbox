@@ -170,17 +170,37 @@ class KinematicModel():
         DoF=len(self.coords)
         rank=self.G.rank()
         ControlMatrix=self.G.copy()
-        g=self.null_vecs
+        g=self.null_vecs.copy()
         
-        oneshottest=True
-        while (oneshottest): #rank<DoF
+        checked={}  #Dictionary for computing the complete Lie Bracket
+
+        while (rank<DoF): #rank<DoF
             if self.n_inputs<3:
-                print("calc.")
                 ControlMatrix=Matrix.hstack(ControlMatrix,LieBracket2(g[0],g[1],q_syms))
                 rank=ControlMatrix.rank()
                 oneshottest=False
             else:
                 raise NotImplementedError("Controllability analysis for more than 2 inputs not implemented yet.")
+            
+            for i in range(len(g)-1):
+                for j in range(i,len(g)):
+                    
+                    if g[i] not in checked:
+                        checked[g[i]]=[]
+                    if g[j] not in checked:
+                        checked[g[j]]=[]
+                
+                    LB=LieBracket2(g[i],g[j],q_syms)
+                    checked[g[i]].append(g[j])
+                    checked[g[j]].append(g[i])
+
+                    g=Matrix.hstack(g,LB)
+
+                    ControlMatrix=Matrix.hstack(ControlMatrix,LB)
+                    rank=ControlMatrix.rank()
+
+
+
         
         pprint(ControlMatrix)
         print(f"Control matrix rank: {rank}")
