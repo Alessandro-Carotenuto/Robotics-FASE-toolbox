@@ -2,7 +2,7 @@ import sympy as sp
 from sympy import Matrix, Symbol, symbols, sin, cos, tan, pprint
 from typing import List, Optional
 from enum import Enum
-from utils import Pfaffian_from_constraints
+from utils import Pfaffian_from_constraints, LieBracket2
 import numpy as np
 
 
@@ -43,6 +43,7 @@ class KinematicModel():
     ):
         self.constraint_matrix = None
         self.extra_points = None
+        self.null_vecs = None
 
         if preset is not None:
             self._load_preset(preset)
@@ -52,7 +53,7 @@ class KinematicModel():
             self.constraint_matrix = sp.trigsimp(self.constraint_matrix)
 
             null_vecs = self.constraint_matrix.nullspace()
-            null_vecs = [sp.trigsimp(v) for v in null_vecs]
+            self.null_vecs = [sp.trigsimp(v) for v in null_vecs]
 
             self.n_inputs = len(null_vecs)
             u        = [symbols(f'u_{i+1}') for i in range(n_inputs)]
@@ -159,5 +160,31 @@ class KinematicModel():
                 self.velocity_expression = self.G * Matrix([u1, u2])
 
     def ControllabilityAnalysis(self):
-        #self.n_inputs 
-        x=LieBrackets(G[:0],G[:1])
+        """self.null_vecs, self.n_inputs, self.G"""
+
+        if self.null_vecs is None:
+            self.null_vecs = [self.G[:, i] for i in range(self.G.shape[1])]
+            self.n_inputs  = self.G.shape[1]
+        q_syms = [symbols(c) for c in self.coords]
+
+        DoF=len(self.coords)
+        rank=self.G.rank()
+        ControlMatrix=self.G.copy()
+        g=self.null_vecs
+        
+        oneshottest=True
+        while (oneshottest): #rank<DoF
+            if self.n_inputs<3:
+                print("calc.")
+                ControlMatrix=Matrix.hstack(ControlMatrix,LieBracket2(g[0],g[1],q_syms))
+                rank=ControlMatrix.rank()
+                oneshottest=False
+            else:
+                raise NotImplementedError("Controllability analysis for more than 2 inputs not implemented yet.")
+        
+        pprint(ControlMatrix)
+        print(f"Control matrix rank: {rank}")
+        return True
+        
+
+        

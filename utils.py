@@ -116,59 +116,6 @@ def Pfaffian_from_constraints(constraints: List, coords: List[str]):
         rows.append(row)
     return Matrix(rows), q_dots
 
-def KinematicModelFromConstraints(constraints: List, coords: List[str], display=True):
-    """
-    Derives the kinematic model q_dot = G(q) * u from a set of Pfaffian constraints.
-
-    The function builds the Pfaffian constraint matrix A^T(q), computes its null space
-    to obtain the input matrix G(q), and returns the kinematic model.
-
-    Args:
-        constraints : list of SymPy expressions (each = 0)
-                      Constraints linear in q_dot, written using _dot notation.
-                      Can be pre-processed (e.g. substituting x_dot, y_dot in terms
-                      of front-frame coordinates) before being passed in.
-        coords      : list of coordinate names as strings
-                      e.g. ['x_f', 'y_f', 'theta', 'phi']
-        display     : if True, prints the kinematic model q_dot = G(q) * u
-
-    Returns:
-        G     : SymPy Matrix (n x m) — the input/distribution matrix
-        q_dot : SymPy Matrix (n x 1) — symbolic expression of q_dot = G(q)*u
-        q_dots: list of SymPy symbols — the coordinate velocity symbols [x_f_dot, ...]
-
-    Usage:
-        l, theta, phi = symbols('l theta phi')
-        x_f_dot, y_f_dot, theta_dot = symbols('x_f_dot y_f_dot theta_dot')
-
-        # Rear wheel pure rolling, substituting x_dot, y_dot via rigid body relation
-        C1 = expression_to_sympy("x_dot*sin(theta)-y_dot*cos(theta)")
-        C1 = C1.subs(symbols('x_dot'), x_f_dot + l*sin(theta)*theta_dot)
-        C1 = C1.subs(symbols('y_dot'), y_f_dot - l*cos(theta)*theta_dot)
-
-        # Front wheel pure rolling
-        C2 = expression_to_sympy("x_f_dot*sin(phi+theta)-y_f_dot*cos(theta+phi)")
-
-        G, q_dot, q_dots = KinematicModelFromConstraints([C1, C2], ['x_f', 'y_f', 'theta', 'phi'])
-    """
-        
-    A, velocity_symbols= Pfaffian_from_constraints(constraints, coords)
-    A = sp.trigsimp(A)
-
-    null_vecs = A.nullspace()
-    null_vecs = [sp.trigsimp(v) for v in null_vecs]
-    n_inputs=len(null_vecs)
-    u = [symbols(f'u_{i+1}') for i in range(n_inputs)]
-    G = sp.Matrix.hstack(*null_vecs)
-    u_vec = sp.Matrix(u)
-    velocity_expression = sp.trigsimp(G * u_vec)
-
-
-    if display:
-        print("Kinematic Model:  q_dot = G(q) * u\n")
-        pprint(sp.Eq(sp.Matrix(velocity_symbols), velocity_expression))
-    return G, velocity_expression, velocity_symbols
-
 def LieBracket2(v1: Matrix, v2: Matrix, coord: List):
     assert shape(v1)[1]==1, f"Vector {v1} should be a column-vector"
     assert shape(v2)[1]==1, f"Vector {v2} should be a column-vector"
