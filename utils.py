@@ -1,4 +1,4 @@
-from sympy import cos, sin, Matrix, symbols, Matrix, Symbol, pprint
+from sympy import cos, sin, Matrix, symbols, Matrix, Symbol, pprint, shape, diff
 from sympy.parsing.sympy_parser import parse_expr
 import sympy as sp
 from typing import List
@@ -168,3 +168,21 @@ def KinematicModelFromConstraints(constraints: List, coords: List[str], display=
         print("Kinematic Model:  q_dot = G(q) * u\n")
         pprint(sp.Eq(sp.Matrix(velocity_symbols), velocity_expression))
     return G, velocity_expression, velocity_symbols
+
+def LieBracket2(v1: Matrix, v2: Matrix, coord: List):
+    assert shape(v1)[1]==1, f"Vector {v1} should be a column-vector"
+    assert shape(v2)[1]==1, f"Vector {v2} should be a column-vector"
+
+    #[g1,g2] = dg2q * g1 - dg1q * g2
+
+    g2_wrt_q=[]
+    g1_wrt_q=[]
+    for q in coord:
+        g1_wrt_q.append(diff(v1,q))
+        g2_wrt_q.append(diff(v2,q))
+    
+    g1_wrt_q=Matrix.hstack(*g1_wrt_q)
+    g2_wrt_q=Matrix.hstack(*g2_wrt_q)
+
+    return g2_wrt_q*v1 - g1_wrt_q*v2
+
