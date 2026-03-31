@@ -56,9 +56,10 @@ class KinematicModel():
             self.null_vecs = [sp.trigsimp(v) for v in null_vecs]
 
             self.n_inputs = len(null_vecs)
-            u        = [symbols(f'u_{i+1}') for i in range(n_inputs)]
+            u        = [symbols(f'u_{i+1}') for i in range(self.n_inputs)]
             self.G   = Matrix.hstack(*null_vecs)
             self.velocity_expression = sp.trigsimp(self.G * Matrix(u))
+            self.velocity_expression = Matrix([sp.factor(e) for e in self.velocity_expression])
         else:
             raise ValueError("Provide either 'preset' or both 'constraints' and 'coords'.")
 
