@@ -255,55 +255,37 @@ disp.animate_display("Multi-Robot Simulation")
 
 ## Roadmap / To-Do
 
-<details><summary><span style="color:orange">Manipulator</span></summary>
-
 ### Manipulator
 
-<details><summary>Minor Test and fixes</summary>
-
-#### Minor Test and fixes
-
+#### Minor fixes & tests
 - [ ] Validate that the number of `LinkBodyAssumptions` entries matches the joint count
 - [ ] Verbose debug output for intermediate calculation steps
 - [ ] Formal verification of Coriolis matrix against textbook formulations
 - [ ] Improved readability of symbolic outputs
-</details>
 
-<details><summary>Major Updates</summary>
-
-#### Major Updates
+#### Major updates
 - [ ] Reachable workspace computation
 - [ ] Dextrous workspace computation
 - [ ] Singularity detection and constraint analysis
 - [ ] Dynamic parameter linearisation (`getDynamicCoefficients`): extract base parameters using `expand()` + `as_independent()`
-- [ ] Inverse kinematics, Numerical
+- [ ] Inverse kinematics — Numerical
+- [ ] Inverse kinematics — Analytical
 - [ ] Trajectory planning for manipulators
 - [ ] Kinematic control
 - [ ] Dynamic control
 - [ ] Adaptive control
 - [ ] Symbolic Recursive Newton-Euler algorithm
-- [ ] Inverse kinematics, Analytical
-</details>
 
-<details><summary>Performance Improvements</summary>
-
-#### Performance (manipulators)
+#### Performance
 - [ ] Propagated Jacobian Method, Screw Theory / Lie Algebra formulation
-</details>
 
-
-<details><summary>IN/OUT Updates</summary>
-
-#### IN/OUT Updates
+#### I/O
 - [ ] URDF file import/export
 
-</details>
-</details>
+---
 
-
-<details><summary><span style="color:orange">Autonomous Mobile Robot</span></summary>
-    
 ### Autonomous Mobile Robot
+
 - [x] Derive kinematic model from constraints (Pfaffian null-space method)
 - [x] Kinematic model presets — Unicycle, Bicycle RWD, Bicycle FWD
 - [x] Kinematic model preset — Car with trailer (5-DOF, articulation angle `β`)
@@ -312,30 +294,25 @@ disp.animate_display("Multi-Robot Simulation")
 - [x] Physical parameter substitution and validation at simulator construction
 - [x] Multi-robot `Environment` — shared simulation loop, per-robot command assignment, trajectory logging
 - [x] `Displayer` — static trajectory plot and frame-by-frame animation (with extra-point support)
-- [X] Lie Bracket for controllability analysis: case of 2 vectors
-- [X] Lie Bracket for controllability analysis: general case
-- [X] Controllability analysis leveraging Lie Bracket results
-- [ ] Feedback control : With Manually inputed control law
-- [ ] Feedback control : With Preset tunable control laws (e.g. unicycle position control)
+- [ ] Lie Bracket for controllability analysis — case of 2 vectors
+- [ ] Lie Bracket for controllability analysis — general case
+- [ ] Controllability analysis leveraging Lie Bracket results
+- [ ] Feedback control — manually specified control law
+- [ ] Feedback control — preset tunable control laws (e.g. unicycle position control)
 - [ ] Path planning — Artificial Potential Fields
 - [ ] Path planning — RRT and RRT*
 - [ ] Trajectory tracking
 - [ ] Kalman Filter & Extended Kalman Filter
 - [ ] SLAM
 
-<details><summary>Performance Improvements</summary>
+#### Performance
+- [ ] Optimize animation with `set_data`
 
-#### Performance (amr)
-- [ ] OPTIMIZE ANIMATION WITH SET DATA
-</details>
-</details>
-
-<details><summary><span style="color:orange">General / Infrastructure</span></summary>
+---
 
 ### General / Infrastructure
+
 - [ ] Expand `Composed_Robot` for hybrid mobile-manipulation systems
 - [ ] Expand `Robot` base class with shared interface (control loop, state, etc.)
 - [ ] Unit tests for kinematics and dynamics outputs
 - [ ] Benchmarking symbolic computation time vs. numerical methods
-
-</details>
