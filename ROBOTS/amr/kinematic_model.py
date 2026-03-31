@@ -195,6 +195,8 @@ class KinematicModel():
                         rank=ControlMatrix.rank()
                         if (rank>=DoF):
                             print("System is Controllable")
+                            rows, cols = ControlMatrix.shape
+                            ControlMatrix = Matrix(rows, cols, [sp.factor(e) for e in ControlMatrix])
                             pprint(ControlMatrix)
                             print(f"Control matrix rank: {rank}")
                             return True
@@ -204,6 +206,8 @@ class KinematicModel():
             lblevel+=1
             
         print("Reached the involutive closure")
+        rows, cols = ControlMatrix.shape
+        ControlMatrix = Matrix(rows, cols, [sp.factor(e) for e in ControlMatrix])
         pprint(ControlMatrix)
         print(f"Control matrix rank: {rank}")
         return False
