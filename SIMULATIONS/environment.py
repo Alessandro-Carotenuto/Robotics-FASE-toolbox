@@ -6,7 +6,7 @@ import numpy as np
 from typing import List, Union
 
 
-class Environment:
+class Environment:  
     def __init__(self, robotlist: Union[Mobile, List[Mobile]] = None, defaultmethod: StepType = StepType.RK4):
         self.simulators = {}    # id(robot) -> KinematicSimulator
         self.robots = []        # Robot List
@@ -33,7 +33,6 @@ class Environment:
             u   = self.commands[id(robot)]
             sim = self.simulators[id(robot)]   
             sim.step(robot, u, dt)
-
 
     def run(self, steps: int, dt: float):
         """Run the simulation for a given number of steps."""

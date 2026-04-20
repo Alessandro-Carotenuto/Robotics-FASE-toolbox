@@ -275,6 +275,16 @@ disp.animate_display("Multi-Robot Simulation")
 - [ ] Dynamic control
 - [ ] Adaptive control
 - [ ] Symbolic Recursive Newton-Euler algorithm
+- [ ] UR_TODO Cyclic coordinate detection — identify coordinates absent from M and G (appear only via q_dot)
+- [ ] UR_TODO Lie Derivatives (`LfH`, `LgH`) in `utils.py` — symbolic `∇h · f` operator, building block for FBL and
+relative degree
+- [ ] UR_TODO Relative degree computation — iterate Lie derivatives until `Lg(Lf^k h) ≠ 0`
+- [ ] UR_TODO Feedback Linearization (collocated) — compute the exact linearising law τ = M(q)v + c + G symbolically
+- [ ] UR_TODO Zero Dynamics — derive the internal dynamics after input-output linearisation (normal form coordinates
+z, η)
+- [ ] UR_TODO LQR design for linearised manipulator — Riccati recursion on the linearised (A, B) around an operating
+point
+- [ ] UR_TODO iLQR / DDP trajectory optimisation — backward/forward pass on the full nonlinear dynamics
 
 #### Performance
 - [ ] Propagated Jacobian Method, Screw Theory / Lie Algebra formulation
@@ -304,9 +314,31 @@ disp.animate_display("Multi-Robot Simulation")
 - [ ] Trajectory tracking
 - [ ] Kalman Filter & Extended Kalman Filter
 - [ ] SLAM
+- [ ] UR_TODO Involutivity check of a distribution — verify closure under Lie bracket (Frobenius theorem)
+- [ ] UR_TODO Partial / Complete Integrability (PI / CI) — classify the passive dynamics from the involutive closure
+- [ ] UR_TODO Small-Time Local Accessibility (STLA) — rank test of the LARC distribution at a given point
+- [ ] UR_TODO Small-Time Local Controllability (STLC) — Philip Hall basis conditions on odd-degree brackets
+- [ ] UR_TODO Driftless system property — expose `is_driftless` flag on `KinematicModel` (all AMR presets qualify)
 
 #### Performance
 - [ ] Optimize animation with `set_data`
+
+### Legged Robots (new module)
+
+- [ ] UR_TODO `LeggedRobot` base class — floating base with SE(3) configuration (position + quaternion)
+- [ ] UR_TODO Zero Moment Point (ZMP) and Support Polygon computation
+- [ ] UR_TODO Linear Inverted Pendulum (LIP) model and 3D ZMP dynamics
+- [ ] UR_TODO Divergent Component of Motion (DCM / Capture Point) — stable/unstable decomposition
+- [ ] UR_TODO Pyramidal friction cone (feasibility region) for contact forces
+- [ ] UR_TODO Single-Rigid-Body Dynamics (SRBD) and Centroidal Dynamics
+- [ ] UR_TODO Preview Control (Kajita) — CoM jerk as input, ZMP preview horizon
+
+### Nonlinear Control Utilities
+
+- [ ] UR_TODO Energy-based Control (swing-up) — Lyapunov energy function + switching strategy for underactuated
+systems
+- [ ] UR_TODO Phase plane visualisation — 2D vector field and orbit plotting utility in `Displayer`
+- [ ] UR_TODO Virtual Constraints — define and enforce output functions on underactuated coordinates
 
 ---
 
