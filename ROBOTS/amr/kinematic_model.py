@@ -4,13 +4,15 @@ from typing import List, Optional
 from enum import Enum
 from utils import Pfaffian_from_constraints, LieBracket2
 import numpy as np
+from FCL import FCL
 
 
 class KinematicPreset(Enum):
-    UNICYCLE     = 1
-    BICYCLE_RWD  = 2
-    BICYCLE_FWD  = 3
+    UNICYCLE         = 1
+    BICYCLE_RWD      = 2
+    BICYCLE_FWD      = 3
     CAR_WITH_TRAILER = 4
+    UNICYCLE_POLAR   = 5
 
 class KinematicModel():
     """
@@ -130,6 +132,22 @@ class KinematicModel():
                 ])
                 self.velocity_expression = self.G * Matrix([u1, u2])
             
+            case KinematicPreset.UNICYCLE_POLAR:
+                # q = [rho, gamma, delta],  u = [v, omega]
+                # rho_dot   = -v * cos(gamma)
+                # gamma_dot = (sin(gamma) / rho) * v - omega
+                # delta_dot = (sin(gamma) / rho) * v
+                rho, gamma = symbols('rho gamma')
+                v, omega = symbols('v omega')
+                self.coords           = ['rho', 'gamma', 'delta']
+                self.velocity_symbols = list(symbols('rho_dot gamma_dot delta_dot'))
+                self.G = Matrix([
+                    [-cos(gamma),      0],
+                    [sin(gamma)/rho,  -1],
+                    [sin(gamma)/rho,   0],
+                ])
+                self.velocity_expression = self.G * Matrix([v, omega])
+
             case KinematicPreset.CAR_WITH_TRAILER:
                 # q = [x, y, theta, phi, beta],  u = [v, phi_dot]
                 # beta = angolo di articolazione car-trailer (0 = allineati)
@@ -159,6 +177,30 @@ class KinematicModel():
                     [tan(phi)/l - sin(beta)/L,      0],
                 ])
                 self.velocity_expression = self.G * Matrix([u1, u2])
+
+    def MotionRegulation(
+            self,
+            coords: List[str],
+            desired_endpoints: List[float],
+            control_inputs: List[str],
+            k: float = 1.0
+        ) -> dict:
+        """Given a list of coordinates and their desired endpoint values, returns a feedback control law u = K *"""
+        Controls = {}
+        input_syms = [symbols(s) for s in control_inputs]
+        for coord, desired in zip(coords, desired_endpoints):
+            if coord not in self.coords:
+                raise ValueError(f"Coordinate '{coord}' not found in model coordinates {self.coords}.")
+            model_vel=self.velocity_map[coord]
+            target_vel = FCL.Pcontrol(coord, str(desired), Kp=k)
+            eq = sp.Eq(model_vel, target_vel)
+            for sym in input_syms:
+                sol = sp.solve(eq, sym)
+                if sol:
+                    Controls[sym] = sol[0]
+
+        return Controls
+
 
     def ControllabilityAnalysis(self):
         """self.null_vecs, self.n_inputs, self.G"""
