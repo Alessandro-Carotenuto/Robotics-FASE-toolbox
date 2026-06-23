@@ -13,6 +13,8 @@ class KinematicPreset(Enum):
     BICYCLE_FWD      = 3
     CAR_WITH_TRAILER = 4
     UNICYCLE_POLAR   = 5
+    UNICYCLE_CHAINED_2_3 = 6
+    GENERAL_CHAINED_2_3  = 7
 
 class KinematicModel():
     """
@@ -148,6 +150,36 @@ class KinematicModel():
                 ])
                 self.velocity_expression = self.G * Matrix([v, omega])
 
+            case KinematicPreset.UNICYCLE_CHAINED_2_3:
+                # (2,3) chained form of the unicycle — state/input transformation:
+                #   z1=theta, z2=x*cos(theta)+y*sin(theta), z3=x*sin(theta)-y*cos(theta)
+                #   v1=omega,  v2=v - z3*omega
+                # z1_dot = v1 | z2_dot = v2 | z3_dot = z2*v1
+                z2 = symbols('z_2')
+                v1, v2 = symbols('v_1 v_2')
+                self.coords           = ['z_1', 'z_2', 'z_3']
+                self.velocity_symbols = list(symbols('z_1_dot z_2_dot z_3_dot'))
+                self.G = Matrix([
+                    [1,  0],
+                    [0,  1],
+                    [z2, 0],
+                ])
+                self.velocity_expression = self.G * Matrix([v1, v2])
+
+            case KinematicPreset.GENERAL_CHAINED_2_3:
+                # Abstract (2,3) chained form: z_dot = G(z)*[v1,v2]
+                # z1_dot = v1 | z2_dot = v2 | z3_dot = z2*v1
+                z2 = symbols('z_2')
+                v1, v2 = symbols('v_1 v_2')
+                self.coords           = ['z_1', 'z_2', 'z_3']
+                self.velocity_symbols = list(symbols('z_1_dot z_2_dot z_3_dot'))
+                self.G = Matrix([
+                    [1,  0],
+                    [0,  1],
+                    [z2, 0],
+                ])
+                self.velocity_expression = self.G * Matrix([v1, v2])
+
             case KinematicPreset.CAR_WITH_TRAILER:
                 # q = [x, y, theta, phi, beta],  u = [v, phi_dot]
                 # beta = angolo di articolazione car-trailer (0 = allineati)
@@ -178,6 +210,29 @@ class KinematicModel():
                 ])
                 self.velocity_expression = self.G * Matrix([u1, u2])
 
+    def addVelCoord(self, vel_name: str, input_name: str):
+        """Add a new coordinate whose velocity equals a new input symbol.
+
+        e.g. model.addVelCoord('v_dot', 'a_v') adds coord 'v' with equation v_dot = a_v
+        """
+        if not vel_name.endswith('_dot'):
+            raise ValueError(f"vel_name must end with '_dot', got '{vel_name}'")
+
+        coord_name = vel_name[:-4]
+        new_input  = symbols(input_name)
+        new_vel    = symbols(vel_name)
+
+        n, m = self.G.shape
+        self.G = Matrix.vstack(
+            Matrix.hstack(self.G, sp.zeros(n, 1)),
+            Matrix([[sp.Integer(0)] * m + [sp.Integer(1)]])
+        )
+
+        self.coords.append(coord_name)
+        self.velocity_symbols.append(new_vel)
+        self.velocity_expression = Matrix.vstack(self.velocity_expression, Matrix([new_input]))
+        self.velocity_map[coord_name] = new_input
+
     def MotionRegulation(
             self,
             coords: List[str],
@@ -185,21 +240,23 @@ class KinematicModel():
             control_inputs: List[str],
             k: float = 1.0
         ) -> dict:
-        """Given a list of coordinates and their desired endpoint values, returns a feedback control law u = K *"""
-        Controls = {}
+        """Given coordinates and desired endpoints, solves for control inputs via P-control on velocity."""
+
         input_syms = [symbols(s) for s in control_inputs]
+
+        equations = []
         for coord, desired in zip(coords, desired_endpoints):
             if coord not in self.coords:
                 raise ValueError(f"Coordinate '{coord}' not found in model coordinates {self.coords}.")
-            model_vel=self.velocity_map[coord]
+            model_vel  = self.velocity_map[coord]
             target_vel = FCL.Pcontrol(coord, str(desired), Kp=k)
-            eq = sp.Eq(model_vel, target_vel)
-            for sym in input_syms:
-                sol = sp.solve(eq, sym)
-                if sol:
-                    Controls[sym] = sol[0]
+            equations.append(sp.Eq(model_vel, target_vel))
 
-        return Controls
+        sol = sp.solve(equations, input_syms, dict=True)
+        if not sol:
+            raise ValueError("System of equations has no solution for the given control inputs.")
+
+        return {sym: sp.simplify(val) for sym, val in sol[0].items()}
 
 
     def ControllabilityAnalysis(self):
