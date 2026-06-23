@@ -259,56 +259,65 @@ class KinematicModel():
         return {sym: sp.simplify(val) for sym, val in sol[0].items()}
 
 
+    @staticmethod
+    def _pprint_control_matrix(M: Matrix, rank: int):
+        # Pretty print the control matrix and its rank
+        rows, cols = M.shape
+        pprint(Matrix(rows, cols, [sp.factor(e) for e in M]))
+        print(f"Control matrix rank: {rank}")
+
     def ControllabilityAnalysis(self):
         """self.null_vecs, self.n_inputs, self.G"""
 
+        #If not already computed (from preset)
         if self.null_vecs is None:
-            self.null_vecs = [self.G[:, i] for i in range(self.G.shape[1])]
+            self.null_vecs = [self.G[:, i] for i in range(self.G.shape[1])] 
             self.n_inputs  = self.G.shape[1]
         q_syms = [symbols(c) for c in self.coords]
 
-        DoF=len(self.coords)
-        rank=self.G.rank()
-        ControlMatrix=self.G.copy()
-        g=self.null_vecs.copy()
+        #Initialize controllability analysis
+        DoF          = len(self.coords)
+        rank         = self.G.rank()
+        ControlMatrix = self.G.copy()
+        g            = self.null_vecs.copy()
+
         
-        checked={}  #Dictionary for computing the complete Lie Bracket
-        lblevel=0
-        while(lblevel == 0 or rank>lastlbrank):
-            lastlbrank=rank
-            newg=g.copy()
-            for i in range(len(g)-1):
-                for j in range(i+1,len(g)):
-                    
+        checked  = {}   #Dictionary to keep track of which pairs of vector fields have been checked for Lie brackets
+        lblevel  = 0    #Level of Lie bracket computation (0 = original vector fields, 1 = first Lie brackets, etc.)
+        while lblevel == 0 or rank > lastlbrank:
+            lastlbrank = rank
+            newg = g.copy()
+            for i in range(len(g) - 1):
+                for j in range(i + 1, len(g)):
+
+                    # Check if the pair (i, j) has already been checked
                     if i not in checked:
-                        checked[i]=[]
+                        checked[i] = []
                     if j not in checked:
-                        checked[j]=[]
-                
+                        checked[j] = []
+                    
+                    # If the pair (i, j) has not been checked, compute the Lie bracket and update the control matrix
                     if j not in checked[i]:
-                        LB=LieBracket2(g[i],g[j],q_syms)
+                        LB = LieBracket2(g[i], g[j], q_syms)
+                        # Update the checked dictionary to mark this pair as checked
                         checked[i].append(j)
                         checked[j].append(i)
+                        # Check if the new Lie bracket is linearly independent of the existing vector fields
                         newg.append(LB)
-                        ControlMatrix=Matrix.hstack(ControlMatrix,LB)
-                        rank=ControlMatrix.rank()
-                        if (rank>=DoF):
+                        ControlMatrix = Matrix.hstack(ControlMatrix, LB)
+                        rank = ControlMatrix.rank()
+                        if rank >= DoF:
                             print("System is Controllable")
-                            rows, cols = ControlMatrix.shape
-                            ControlMatrix = Matrix(rows, cols, [sp.factor(e) for e in ControlMatrix])
-                            pprint(ControlMatrix)
-                            print(f"Control matrix rank: {rank}")
+                            self._pprint_control_matrix(ControlMatrix, rank)
                             return True
-                    else:
-                        pass
-            g=newg.copy()
-            lblevel+=1
-            
+                        
+            # Update g and lblevel for the next iteration
+            g = newg.copy()
+            lblevel += 1
+
+        # If the loop exits without reaching full rank, the system is not controllable
         print("Reached the involutive closure")
-        rows, cols = ControlMatrix.shape
-        ControlMatrix = Matrix(rows, cols, [sp.factor(e) for e in ControlMatrix])
-        pprint(ControlMatrix)
-        print(f"Control matrix rank: {rank}")
+        self._pprint_control_matrix(ControlMatrix, rank)
         return False
         
 
