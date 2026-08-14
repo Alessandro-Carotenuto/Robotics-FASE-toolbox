@@ -1,6 +1,16 @@
 # Robotics-FASE-Toolbox
 
-A symbolic robotics toolbox built in Python using [SymPy](https://www.sympy.org/). It provides tools for modelling, analysing, and controlling robotic systems — both serial manipulators and autonomous mobile robots — using exact symbolic mathematics rather than numerical approximations.
+<p align="center">
+  <img src="https://img.shields.io/badge/Python-3.10+-3776AB?logo=python&logoColor=white" alt="Python" height="28" />
+  <img src="https://img.shields.io/badge/SymPy-symbolic_math-3B5526?logo=sympy&logoColor=white" alt="SymPy" height="28" />
+  <img src="https://img.shields.io/badge/NumPy-013243?logo=numpy&logoColor=white" alt="NumPy" height="28" />
+  <img src="https://img.shields.io/badge/Matplotlib-visualisation-11557C" alt="Matplotlib" height="28" />
+  <img src="https://img.shields.io/badge/Status-In_Progress-yellow" alt="Status" height="28" />
+</p>
+
+*Alessandro Carotenuto*
+
+A symbolic robotics toolbox built in Python using SymPy. Provides tools for modelling, analysing, and controlling robotic systems — autonomous mobile robots, underactuated and legged systems, and serial manipulators — using exact symbolic mathematics rather than numerical approximations.
 
 ---
 
@@ -27,59 +37,6 @@ test.py                               # Scratch / experimentation scripts
 ---
 
 ## Features
-
-### Manipulator (`manipulator.py`)
-
-Instantiate a manipulator from a **joint string** (e.g. `"RRR"` for a 3-DOF revolute arm, `"2R1P"` for two revolute + one prismatic):
-
-```python
-from manipulator import Manipulator, LinkBodyAssumptions
-
-robot = Manipulator("RRR", assumptions=LinkBodyAssumptions.CYLINDRIC)
-```
-
-On construction, the following are computed **symbolically and automatically**:
-
-| Attribute | Description |
-|-----------|-------------|
-| `robot.FKlist` | Forward kinematics chain (list of `4×4` homogeneous transforms) |
-| `robot.J` | Geometric Jacobian `(J, Jv, Jw)` — full, linear, and angular parts |
-| `robot.T` | Total kinetic energy of the system |
-| `robot.M` | Inertia (mass) matrix |
-| `robot.c` | Coriolis vector |
-| `robot.G` | Gravity vector |
-
-#### Setting DH Parameters
-
-```python
-from sympy import pi
-
-robot.setDHParameters(
-    param_list=["alpha", "a", "d"],
-    index_list=[0, 0, 0],
-    value_list=[pi/2, 0, 0]
-)
-```
-
-All downstream quantities (FK, Jacobian, dynamics) are automatically recomputed.
-
----
-
-### Joints and Links (`joints.py`)
-
-Each joint holds its DH parameters as SymPy symbols and supports multiple **inertia tensor assumptions** to simplify the dynamic model:
-
-| Assumption | Description |
-|---|---|
-| `GENERAL` | Full symmetric 3×3 inertia tensor |
-| `DIAGONAL` | Off-diagonal terms set to zero |
-| `CYLINDRIC` | Diagonal + `Iyy = Ixx` |
-| `SPHERE` | Diagonal + `Iyy = Izz = Ixx` |
-| `THIN_ROD` | Diagonal + `Iyy = Ixx`, `Izz = 0` |
-| `PLANAR` | Diagonal + `Ixx = Iyy = 0` |
-| `POINT_MASS` | All inertia terms zero |
-
----
 
 ### Autonomous Mobile Robot (`ROBOTS/amr/`)
 
@@ -166,6 +123,59 @@ The `animate_display` method also renders **extra points** (e.g. trailer positio
 
 ---
 
+### Manipulator (`manipulator.py`)
+
+Instantiate a manipulator from a **joint string** (e.g. `"RRR"` for a 3-DOF revolute arm, `"2R1P"` for two revolute + one prismatic):
+
+```python
+from manipulator import Manipulator, LinkBodyAssumptions
+
+robot = Manipulator("RRR", assumptions=LinkBodyAssumptions.CYLINDRIC)
+```
+
+On construction, the following are computed **symbolically and automatically**:
+
+| Attribute | Description |
+|-----------|-------------|
+| `robot.FKlist` | Forward kinematics chain (list of `4×4` homogeneous transforms) |
+| `robot.J` | Geometric Jacobian `(J, Jv, Jw)` — full, linear, and angular parts |
+| `robot.T` | Total kinetic energy of the system |
+| `robot.M` | Inertia (mass) matrix |
+| `robot.c` | Coriolis vector |
+| `robot.G` | Gravity vector |
+
+#### Setting DH Parameters
+
+```python
+from sympy import pi
+
+robot.setDHParameters(
+    param_list=["alpha", "a", "d"],
+    index_list=[0, 0, 0],
+    value_list=[pi/2, 0, 0]
+)
+```
+
+All downstream quantities (FK, Jacobian, dynamics) are automatically recomputed.
+
+---
+
+### Joints and Links (`joints.py`)
+
+Each joint holds its DH parameters as SymPy symbols and supports multiple **inertia tensor assumptions** to simplify the dynamic model:
+
+| Assumption | Description |
+|---|---|
+| `GENERAL` | Full symmetric 3×3 inertia tensor |
+| `DIAGONAL` | Off-diagonal terms set to zero |
+| `CYLINDRIC` | Diagonal + `Iyy = Ixx` |
+| `SPHERE` | Diagonal + `Iyy = Izz = Ixx` |
+| `THIN_ROD` | Diagonal + `Iyy = Ixx`, `Izz = 0` |
+| `PLANAR` | Diagonal + `Ixx = Iyy = 0` |
+| `POINT_MASS` | All inertia terms zero |
+
+---
+
 ### Utility Functions (`utils.py`)
 
 | Function | Description |
@@ -193,19 +203,6 @@ pip install sympy numpy matplotlib
 ---
 
 ## Quick Examples
-
-### Serial Manipulator
-
-```python
-from manipulator import Manipulator, LinkBodyAssumptions
-from sympy import pprint
-
-# 2-DOF planar revolute arm, planar body assumption
-robot = Manipulator("RR", assumptions=LinkBodyAssumptions.PLANAR)
-
-pprint(robot.M)   # inertia matrix
-pprint(robot.G)   # gravity vector
-```
 
 ### Mobile Robot — Single Unicycle
 
@@ -251,48 +248,22 @@ disp = Displayer(env)
 disp.animate_display("Multi-Robot Simulation")
 ```
 
----
+### Serial Manipulator
 
-## Roadmap / To-Do
+```python
+from manipulator import Manipulator, LinkBodyAssumptions
+from sympy import pprint
 
-### Manipulator
+# 2-DOF planar revolute arm, planar body assumption
+robot = Manipulator("RR", assumptions=LinkBodyAssumptions.PLANAR)
 
-#### Minor fixes & tests
-- [ ] Validate that the number of `LinkBodyAssumptions` entries matches the joint count
-- [ ] Verbose debug output for intermediate calculation steps
-- [ ] Formal verification of Coriolis matrix against textbook formulations
-- [ ] Improved readability of symbolic outputs
-
-#### Major updates
-- [ ] Reachable workspace computation
-- [ ] Dextrous workspace computation
-- [ ] Singularity detection and constraint analysis
-- [ ] Dynamic parameter linearisation (`getDynamicCoefficients`): extract base parameters using `expand()` + `as_independent()`
-- [ ] Inverse kinematics — Numerical
-- [ ] Inverse kinematics — Analytical
-- [ ] Trajectory planning for manipulators
-- [ ] Kinematic control
-- [ ] Dynamic control
-- [ ] Adaptive control
-- [ ] Symbolic Recursive Newton-Euler algorithm
-- [ ] UR_TODO Cyclic coordinate detection — identify coordinates absent from M and G (appear only via q_dot)
-- [ ] UR_TODO Lie Derivatives (`LfH`, `LgH`) in `utils.py` — symbolic `∇h · f` operator, building block for FBL and
-relative degree
-- [ ] UR_TODO Relative degree computation — iterate Lie derivatives until `Lg(Lf^k h) ≠ 0`
-- [ ] UR_TODO Feedback Linearization (collocated) — compute the exact linearising law τ = M(q)v + c + G symbolically
-- [ ] UR_TODO Zero Dynamics — derive the internal dynamics after input-output linearisation (normal form coordinates
-z, η)
-- [ ] UR_TODO LQR design for linearised manipulator — Riccati recursion on the linearised (A, B) around an operating
-point
-- [ ] UR_TODO iLQR / DDP trajectory optimisation — backward/forward pass on the full nonlinear dynamics
-
-#### Performance
-- [ ] Propagated Jacobian Method, Screw Theory / Lie Algebra formulation
-
-#### I/O
-- [ ] URDF file import/export
+pprint(robot.M)   # inertia matrix
+pprint(robot.G)   # gravity vector
+```
 
 ---
+
+## Roadmap
 
 ### Autonomous Mobile Robot
 
@@ -307,6 +278,11 @@ point
 - [X] Lie Bracket for controllability analysis — case of 2 vectors
 - [X] Lie Bracket for controllability analysis — general case
 - [X] Controllability analysis leveraging Lie Bracket results
+- [ ] Involutivity check of a distribution — verify closure under Lie bracket (Frobenius theorem)
+- [ ] Partial / Complete Integrability (PI / CI) — classify passive dynamics from the involutive closure
+- [ ] Small-Time Local Accessibility (STLA) — rank test of the LARC distribution at a given point
+- [ ] Small-Time Local Controllability (STLC) — Philip Hall basis conditions on odd-degree brackets
+- [ ] Driftless system property — expose `is_driftless` flag on `KinematicModel`
 - [ ] Feedback control — manually specified control law
 - [ ] Feedback control — preset tunable control laws (e.g. unicycle position control)
 - [ ] Path planning — Artificial Potential Fields
@@ -314,31 +290,65 @@ point
 - [ ] Trajectory tracking
 - [ ] Kalman Filter & Extended Kalman Filter
 - [ ] SLAM
-- [ ] UR_TODO Involutivity check of a distribution — verify closure under Lie bracket (Frobenius theorem)
-- [ ] UR_TODO Partial / Complete Integrability (PI / CI) — classify the passive dynamics from the involutive closure
-- [ ] UR_TODO Small-Time Local Accessibility (STLA) — rank test of the LARC distribution at a given point
-- [ ] UR_TODO Small-Time Local Controllability (STLC) — Philip Hall basis conditions on odd-degree brackets
-- [ ] UR_TODO Driftless system property — expose `is_driftless` flag on `KinematicModel` (all AMR presets qualify)
 
 #### Performance
 - [ ] Optimize animation with `set_data`
 
-### Legged Robots (new module)
+---
 
-- [ ] UR_TODO `LeggedRobot` base class — floating base with SE(3) configuration (position + quaternion)
-- [ ] UR_TODO Zero Moment Point (ZMP) and Support Polygon computation
-- [ ] UR_TODO Linear Inverted Pendulum (LIP) model and 3D ZMP dynamics
-- [ ] UR_TODO Divergent Component of Motion (DCM / Capture Point) — stable/unstable decomposition
-- [ ] UR_TODO Pyramidal friction cone (feasibility region) for contact forces
-- [ ] UR_TODO Single-Rigid-Body Dynamics (SRBD) and Centroidal Dynamics
-- [ ] UR_TODO Preview Control (Kajita) — CoM jerk as input, ZMP preview horizon
+### Underactuated & Nonlinear Control
 
-### Nonlinear Control Utilities
+- [ ] Energy-based Control (swing-up) — Lyapunov energy function + switching strategy for underactuated systems
+- [ ] Phase plane visualisation — 2D vector field and orbit plotting utility in `Displayer`
+- [ ] Virtual Constraints — define and enforce output functions on underactuated coordinates
+- [ ] Lie Derivatives (`LfH`, `LgH`) — symbolic `∇h · f` operator, building block for FBL and relative degree
+- [ ] Relative degree computation — iterate Lie derivatives until `Lg(Lf^k h) ≠ 0`
+- [ ] Feedback Linearization (collocated) — compute the exact linearising law `τ = M(q)v + c + G` symbolically
+- [ ] Zero Dynamics — derive internal dynamics after input-output linearisation (normal form coordinates z, η)
 
-- [ ] UR_TODO Energy-based Control (swing-up) — Lyapunov energy function + switching strategy for underactuated
-systems
-- [ ] UR_TODO Phase plane visualisation — 2D vector field and orbit plotting utility in `Displayer`
-- [ ] UR_TODO Virtual Constraints — define and enforce output functions on underactuated coordinates
+---
+
+### Legged Robots
+
+- [ ] `LeggedRobot` base class — floating base with SE(3) configuration (position + quaternion)
+- [ ] Zero Moment Point (ZMP) and Support Polygon computation
+- [ ] Linear Inverted Pendulum (LIP) model and 3D ZMP dynamics
+- [ ] Divergent Component of Motion (DCM / Capture Point) — stable/unstable decomposition
+- [ ] Pyramidal friction cone (feasibility region) for contact forces
+- [ ] Single-Rigid-Body Dynamics (SRBD) and Centroidal Dynamics
+- [ ] Preview Control (Kajita) — CoM jerk as input, ZMP preview horizon
+
+---
+
+### Manipulator
+
+#### Minor fixes & tests
+- [ ] Validate that the number of `LinkBodyAssumptions` entries matches the joint count
+- [ ] Verbose debug output for intermediate calculation steps
+- [ ] Formal verification of Coriolis matrix against textbook formulations
+- [ ] Improved readability of symbolic outputs
+
+#### Major updates
+- [ ] Reachable workspace computation
+- [ ] Dextrous workspace computation
+- [ ] Singularity detection and constraint analysis
+- [ ] Dynamic parameter linearisation (`getDynamicCoefficients`)
+- [ ] Inverse kinematics — Numerical
+- [ ] Inverse kinematics — Analytical
+- [ ] Trajectory planning
+- [ ] Kinematic control
+- [ ] Dynamic control
+- [ ] Adaptive control
+- [ ] Symbolic Recursive Newton-Euler algorithm
+- [ ] Cyclic coordinate detection — identify coordinates absent from M and G
+- [ ] LQR design for linearised manipulator — Riccati recursion on the linearised (A, B)
+- [ ] iLQR / DDP trajectory optimisation — backward/forward pass on the full nonlinear dynamics
+
+#### Performance
+- [ ] Propagated Jacobian Method, Screw Theory / Lie Algebra formulation
+
+#### I/O
+- [ ] URDF file import/export
 
 ---
 
