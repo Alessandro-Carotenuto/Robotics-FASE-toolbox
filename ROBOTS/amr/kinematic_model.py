@@ -1,8 +1,8 @@
 import sympy as sp
 from sympy import Matrix, Symbol, symbols, sin, cos, tan, pprint
-from typing import List, Optional
+from typing import List, Optional, Union
 from enum import Enum
-from utils import Pfaffian_from_constraints, LieBracket2
+from utils import Pfaffian_from_constraints, LieBracket2, completeDerivative
 import numpy as np
 from FCL import FCL
 
@@ -210,6 +210,50 @@ class KinematicModel():
                 ])
                 self.velocity_expression = self.G * Matrix([u1, u2])
 
+    def getQSymbols(self) -> List:
+        return [symbols(c) for c in self.coords]
+
+    def getQVelocities(self) -> List:
+        return [self.velocity_map[c] for c in self.coords]
+
+    def updateSymbol(self, old: Union[str, sp.Expr], new: Union[str, sp.Expr]) -> None:
+        """Replace a symbol everywhere in the kinematic model.
+
+        Works for input symbols and physical parameters (u_1, l, ...) and
+        for coordinate symbols. For coordinates, also updates coords list,
+        velocity_symbols (e.g. theta_dot -> psi_dot), and velocity_map keys.
+        """
+        old_sym  = symbols(old) if isinstance(old, str) else old
+        new_sym  = symbols(new) if isinstance(new, str) else new
+        old_name = str(old_sym)
+        new_name = str(new_sym)
+        sub      = [(old_sym, new_sym)]
+
+        # Update all SymPy expression attributes
+        self.G                   = self.G.subs(sub)
+        self.velocity_expression = self.velocity_expression.subs(sub)
+        if self.null_vecs is not None:
+            self.null_vecs       = [v.subs(sub) for v in self.null_vecs]
+        if self.constraint_matrix is not None:
+            self.constraint_matrix = self.constraint_matrix.subs(sub)
+
+        # Update velocity_map: substitute values and rename key if it's a coordinate
+        self.velocity_map = {
+            (new_name if c == old_name else c): expr.subs(sub)
+            for c, expr in self.velocity_map.items()
+        }
+
+        # If old_sym is a coordinate, update coords and velocity_symbols too
+        if old_name in self.coords:
+            idx = self.coords.index(old_name)
+            self.coords[idx] = new_name
+            old_vel = symbols(old_name + '_dot')
+            new_vel = symbols(new_name + '_dot')
+            self.velocity_symbols = [
+                new_vel if s == old_vel else s
+                for s in self.velocity_symbols
+            ]
+
     def addVelCoord(self, vel_name: str, input_name: str):
         """Add a new coordinate whose velocity equals a new input symbol.
 
@@ -235,22 +279,81 @@ class KinematicModel():
 
     def MotionRegulation(
             self,
-            coords: List[str],
-            desired_endpoints: List[float],
-            control_inputs: List[str],
-            k: float = 1.0
+            coords:            List[str],
+            desired_endpoints: List[Union[float, sp.Expr]],
+            control_inputs:    List[str],
+            k:                 Optional[Union[float, List[float]]] = None,
+            kd:                Optional[Union[float, List[float]]] = None,
+            max_order:         int = 5,
         ) -> dict:
-        """Given coordinates and desired endpoints, solves for control inputs via P-control on velocity."""
+        """Solve for control inputs that regulate each coord to its desired endpoint.
+
+        Automatically detects the relative degree of each output by differentiating
+        with completeDerivative until the control inputs appear, then applies the
+        appropriate FCL law:
+            degree 1 → P control
+            degree 2 → PD control  (uses actual ẏ expression as velocity feedback)
+
+        k, kd default to symbolic kp_1, kp_2, ... / kd_1, kd_2, ... if not provided.
+        """
 
         input_syms = [symbols(s) for s in control_inputs]
+        n_eq  = len(coords)
+        n_inp = len(input_syms)
+
+        if n_eq > n_inp:
+            raise ValueError(f"Overconstrained: {n_eq} equations for {n_inp} control inputs.")
+        if n_eq < n_inp:
+            print(f"Warning: underdetermined — {n_eq} equations, {n_inp} inputs.")
+
+        if k is None:
+            k = [symbols(f'kp_{i+1}', positive=True) for i in range(n_eq)]
+        if kd is None:
+            kd = [symbols(f'kd_{i+1}', positive=True) for i in range(n_eq)]
+
+        kp_list = k  if isinstance(k,  list) else [k]  * n_eq
+        kd_list = kd if isinstance(kd, list) else [kd] * n_eq
+        if isinstance(k,  list) and len(k)  != n_eq:
+            raise ValueError(f"k has {len(k)} entries but {n_eq} coords given.")
+        if isinstance(kd, list) and len(kd) != n_eq:
+            raise ValueError(f"kd has {len(kd)} entries but {n_eq} coords given.")
+
+        q_syms = self.getQSymbols()
+        q_dots = self.getQVelocities()
 
         equations = []
-        for coord, desired in zip(coords, desired_endpoints):
+        for kp, kd_i, coord, desired in zip(kp_list, kd_list, coords, desired_endpoints):
             if coord not in self.coords:
-                raise ValueError(f"Coordinate '{coord}' not found in model coordinates {self.coords}.")
-            model_vel  = self.velocity_map[coord]
-            target_vel = FCL.Pcontrol(coord, str(desired), Kp=k)
-            equations.append(sp.Eq(model_vel, target_vel))
+                raise ValueError(f"Coordinate '{coord}' not found in {self.coords}.")
+
+            desired_expr = desired if isinstance(desired, sp.Expr) else sp.sympify(desired)
+
+            # Differentiate until control inputs appear → detect relative degree
+            expr    = symbols(coord)
+            history = [expr]
+            for order in range(1, max_order + 1):
+                expr = completeDerivative(expr, q_syms, q_dots)
+                history.append(expr)
+                if any(inp in expr.free_symbols for inp in input_syms):
+                    break
+            else:
+                raise ValueError(
+                    f"Control inputs not found in {max_order} derivatives of '{coord}'."
+                )
+
+            # Apply FCL at detected relative degree
+            if order == 1:
+                target = FCL.Pcontrol(coord, desired_expr, Kp=kp)
+            elif order == 2:
+                target = FCL.PDcontrol(
+                    coord, desired_expr,
+                    coord_dot=history[1],   # actual ẏ expression
+                    Kp=kp, Kd=kd_i,
+                )
+            else:
+                raise NotImplementedError(f"Relative degree {order} not yet supported.")
+
+            equations.append(sp.Eq(expr, target))
 
         sol = sp.solve(equations, input_syms, dict=True)
         if not sol:

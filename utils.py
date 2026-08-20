@@ -1,7 +1,36 @@
 from sympy import cos, sin, Matrix, symbols, Matrix, Symbol, pprint, diff
 from sympy.parsing.sympy_parser import parse_expr
 import sympy as sp
-from typing import List
+from typing import Dict, List, Optional
+
+
+def completeDerivative(
+    expr:   sp.Expr,
+    q_syms: List,
+    q_dots: List,
+    t:      Optional[sp.Expr] = None,
+) -> sp.Expr:
+    """Complete (total) time derivative of expr along a vector field.
+
+    If t is provided and appears in expr, uses sp.diff(expr, t) directly
+    (handles explicit t-dependence and Function(t)-style coordinates).
+    Otherwise applies the chain rule:  sum_i  (df/dq_i) * q_dot_i
+
+    Args:
+        expr:   scalar expression to differentiate
+        q_syms: list of state symbols  [q_1, q_2, ...]
+        q_dots: list of their rates    [q_1_dot, q_2_dot, ...]
+        t:      time symbol (optional)
+    """
+    if t is not None and t in expr.free_symbols:
+        return sp.diff(expr, t)
+    return sum(sp.diff(expr, q) * dq for q, dq in zip(q_syms, q_dots))
+
+
+def separation_title(title: str, width: int = 60) -> None:
+    print("\n" + "=" * width)
+    print(title)
+    print("=" * width)
 
 
 def validate_joint_string(s: str) -> bool:
